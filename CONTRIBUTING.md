@@ -10,6 +10,8 @@ Hard rule: **no hardcoded output numbers.** Every APR, monthly payment, fee and 
 
 Lender profiles are simulated on purpose. Use fictional but realistic names (for example "Lone Star Federal Credit Union", "Harbor Online Lending"). Do not attach made-up rates to real lender brands.
 
+RateScout is presented as a standalone MVP product. Do not mention any competition, event, organizer, judges, deadlines or submission anywhere in the repo or the product: code, comments, UI text, README, commits, PRs, issues or file names. Event-related notes stay on each person's machine (see section 10).
+
 ## 2. Scope (frozen)
 
 In scope — the five views and one API route below. Nothing else gets built. New ideas go into `docs/later.md`, not into code.
@@ -21,6 +23,7 @@ In scope — the five views and one API route below. Nothing else gets built. Ne
 | Blurred preview / paywall | `preview` | B |
 | 3-day trial activation | `trial` | C |
 | Dashboard (comparator, PDF scanner, email previews) | `dashboard` | C (PDF scanner panel: A) |
+| My Loan Plan + Rate Watch (dashboard tab 3, return visits) | `dashboard` | B |
 
 Out of scope for the MVP: real payments (Stripe), real emails (Resend), database (Supabase), accounts/login, live rate feeds (FRED). Checkout buttons and emails are simulated, as the spec allows.
 
@@ -51,6 +54,8 @@ src/views/Landing.tsx       B
 src/views/Quiz.tsx          B
 src/views/Preview.tsx       B
 src/components/Navbar.tsx   B
+src/components/LoanPlan.tsx B   plan checklist, progress, rate watch
+src/lib/plan.ts             B   plan steps per goal + localStorage save/load
 src/views/Trial.tsx         C
 src/views/Dashboard.tsx     C
 src/components/EmailCard.tsx   C
@@ -133,6 +138,32 @@ Starting values. A may tune them, but the shapes stay the same.
 - Mortgage assistance estimate: 3% of amount, capped by state (TX 10,000; CA 15,000; NY 15,000; FL 10,000; IL 7,500). Auto/BNPL: 1% of amount, capped at 500
 - Lifetime savings that would be negative show as 0 and the UI says "You already have a competitive rate"
 
+### Loan Plan and Rate Watch (`src/lib/plan.ts`)
+
+This is the reason a user comes back after the first visit. It must work in the product, not only be described.
+
+```ts
+interface SavedAudit {
+  version: 1;
+  input: QuizInput;
+  createdAt: string;            // ISO date of the first audit
+  baselineAtSave: number;       // baselineApr(...) when saved
+  completedSteps: string[];     // ids of checked plan steps
+  rateShift: number;            // percent points, 0 normally; demo control sets e.g. -0.25
+}
+
+export function planSteps(goal: Goal): { id: string; title: string; detail: string }[];
+export function loadSaved(): SavedAudit | null;      // localStorage key "ratescout:v1", try/catch, null on any error
+export function saveAudit(s: SavedAudit): void;
+```
+
+- Saved automatically when the user reaches the dashboard. No account needed.
+- Plan steps per goal, 6 to 8 each. Mortgage example: request Loan Estimates from 3 lenders, scan each with the PDF scanner, send the negotiation email, compare final APR and fees, lock the rate, review the Closing Disclosure. Write similar lists for auto and BNPL.
+- Progress bar shows completed / total. Checking a step saves immediately.
+- Rate Watch re-runs `computeAudit` with the saved input and `baselineApr + rateShift`, and shows the change in APR, monthly payment and lifetime savings since `createdAt`.
+- Demo control, clearly labeled "Demo: simulate a market rate change", sets `rateShift` to −0.25 and the numbers recalculate through the same functions. This lines up with the Day-2 "Rate Drop Alert" email.
+- On the landing page, if `loadSaved()` returns data, show "Welcome back — continue your plan" linking to the dashboard plan tab.
+
 ### PDF scan API (`api/scan.ts`)
 
 ```
@@ -185,6 +216,9 @@ Dashboard
 - Tab 2 "Automated Day-2 Retention Emails Preview":
   - Value alert, subject "Rate Drop Alert: One of your matched credit unions in [State] just cut APR by 0.25%"
   - Transparency email, subject "Heads up: Your RateScout 3-day free trial ends tomorrow", states the $29/mo renewal date and a 1-click cancel link
+- Tab 3 "My Loan Plan": personal checklist with progress, Rate Watch card, labeled demo control (see section 5)
+
+Every lender list is labeled "Sample lender profiles". Every sample input is labeled "Sample data". Hide any button that does not work.
 
 Footer (every view): "RateScout is an AI-powered educational and analytical tool, not a licensed mortgage broker, lender, or registered financial advisor. All rates, fees, and savings figures shown are dynamic MVP estimates calculated from user inputs for educational and informational purposes only."
 
@@ -195,8 +229,8 @@ Look: white and slate surfaces, deep navy text, emerald for savings, amber or re
 | Hour | A | B | C |
 |---|---|---|---|
 | 0–1 | Scaffold, lint, CI, `App.tsx` view switch, `finance.ts` stubs with the signatures above | `AppContext.tsx` | `DESIGN.md` (website-design:web-design-system skill) |
-| 1–4 | finance math, lender data, tests | Landing, Quiz | Trial, Dashboard layout |
-| 4–7 | `api/scan.ts`, sample PDF, PdfScanner | Scanning animation, Preview | Comparator table, email previews, Footer |
+| 1–4 | finance math, lender data, tests | Landing, Quiz, scanning animation | Trial, Dashboard layout and tabs |
+| 4–7 | `api/scan.ts`, sample PDF, PdfScanner | Preview, Loan Plan + Rate Watch | Comparator table, email previews, Footer |
 | 7 | **Feature freeze — bug fixes only from here** | | |
 | 7–8.5 | Full run on the deployed Vercel URL, fix bugs | Mobile layout pass | Copy check |
 | 8.5–10 | Polish (impeccable skill), README, demo rehearsal, backup screen recording | | |
@@ -228,7 +262,12 @@ Accounts and connectors:
 
 ## 10. Working with Claude Code
 
-- Create a local `CLAUDE.md` (it is gitignored) containing one line: `@CONTRIBUTING.md`. Your Claude then loads this file every session.
+- Create a local `CLAUDE.md` (it is gitignored) with these two lines, so your Claude loads both files every session:
+  ```
+  @CONTRIBUTING.md
+  @.local/brief-notes.md
+  ```
+- Put the notes file you received from the team lead at `.local/brief-notes.md`. The `.local/` folder is gitignored. Never move it, copy it or quote it anywhere that gets committed.
 - Turn off co-author lines: in `~/.claude/settings.json` add `"attribution": { "commit": "", "pr": "", "sessionUrl": false }`.
 - Useful skills: `karpathy-guidelines` (keeps changes small), `claude-api` (for `api/scan.ts`), `website-design:web-design-system` (DESIGN.md), `impeccable` (final polish), `code-review` and `simplify` before each PR.
 - Each person has a main and a backup Claude Pro account. Switch when you hit the usage limit. Use `/clear` between tasks to save usage.
