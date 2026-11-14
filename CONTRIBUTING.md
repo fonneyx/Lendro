@@ -46,7 +46,10 @@ Edit only the files you own. If you need a change in someone else's file, messag
 src/lib/finance.ts          A   all loan math
 src/lib/finance.test.ts     A
 src/data/lenders.ts         A   simulated lender profiles + rate tables
-src/lib/scan.ts             A   client for /api/scan + offline fallback
+src/lib/types.ts            A   shared types and label maps (QuizInput, Audit, ScanResult)
+src/lib/format.ts           A   formatUSD, formatUSDCents, formatPct
+src/lib/validate.ts         A   input and model-output validation
+src/lib/scan.ts             A   scanDocument(input, file?) client + simulatedScan fallback
 api/scan.ts                 A   Vercel function, Claude API
 src/components/PdfScanner.tsx  A
 src/state/AppContext.tsx    B   shared quiz state + current view
@@ -100,8 +103,10 @@ export function monthlyPayment(principal: number, aprPct: number, months: number
 export function totalInterest(principal: number, aprPct: number, months: number): number;
 export function baselineApr(goal: Goal, state: UsState, tier: CreditTier): number;
   // "state market baseline" used when bankApr is null
-export function matchLenders(input: QuizInput): LenderQuote[];   // sorted, best APR first
-export function computeAudit(input: QuizInput): Audit;
+export function matchLenders(input: QuizInput, options?: { rateShift?: number }): LenderQuote[];   // sorted, best APR first
+export function computeAudit(input: QuizInput, options?: { rateShift?: number }): Audit;
+  // rateShift moves the lender market only; the bank side stays fixed (used by Rate Watch)
+export function buildNegotiationEmail(input: QuizInput, audit: Audit, fees: ScannedFee[]): string;
 
 interface LenderQuote {
   id: string; name: string; kind: 'credit_union' | 'online_lender';
@@ -160,7 +165,7 @@ export function saveAudit(s: SavedAudit): void;
 - Saved automatically when the user reaches the dashboard. No account needed.
 - Plan steps per goal, 6 to 8 each. Mortgage example: request Loan Estimates from 3 lenders, scan each with the PDF scanner, send the negotiation email, compare final APR and fees, lock the rate, review the Closing Disclosure. Write similar lists for auto and BNPL.
 - Progress bar shows completed / total. Checking a step saves immediately.
-- Rate Watch re-runs `computeAudit` with the saved input and `baselineApr + rateShift`, and shows the change in APR, monthly payment and lifetime savings since `createdAt`.
+- Rate Watch re-runs `computeAudit` with the saved input and `{ rateShift }`, and shows the change in APR, monthly payment and lifetime savings since `createdAt`.
 - Demo control, clearly labeled "Demo: simulate a market rate change", sets `rateShift` to −0.25 and the numbers recalculate through the same functions. This lines up with the Day-2 "Rate Drop Alert" email.
 - On the landing page, if `loadSaved()` returns data, show "Welcome back — continue your plan" linking to the dashboard plan tab.
 
@@ -168,17 +173,19 @@ export function saveAudit(s: SavedAudit): void;
 
 ```
 POST /api/scan
-body: { pdfBase64?: string, sample?: boolean, input: QuizInput }
+body: { pdfBase64: string, input: QuizInput }
 200:  { fees: { name: string; amount: number; flag: 'junk' | 'negotiable' | 'standard'; note: string }[],
         totalFlagged: number,
+        summary: string,
         emailScript: string,     // personalized with the user's numbers
         source: 'ai' | 'simulated' }
 ```
 
 - Uses the Claude API with the PDF as a document block and structured JSON output. The key lives in Vercel env var `ANTHROPIC_API_KEY`, never in the client or the repo.
 - When implementing, run the `claude-api` skill so the model id and SDK calls are current.
-- "Test with Sample Bank PDF" sends `sample: true`; the function uses `public/sample-loan-estimate.pdf`.
-- If the call fails or times out (15 s), `src/lib/scan.ts` returns a simulated result from `computeAudit` with `source: 'simulated'`. The demo must never show an error screen.
+- UI code calls `scanDocument(input, file)` from `src/lib/scan.ts`. With no file it loads `public/sample-loan-estimate.pdf` ("Test with Sample Bank PDF") and sends it through the same live pipeline.
+- Claude only extracts and flags fees. Totals and the email script are computed in code.
+- If the call fails or times out (30 s), or no key is set,, `src/lib/scan.ts` returns a simulated result from `computeAudit` with `source: 'simulated'`. The demo must never show an error screen.
 - Uploaded files are analyzed and not stored. Say so in the scanner UI.
 
 ## 6. Screen copy (use these strings exactly)
@@ -253,6 +260,10 @@ cd Loaney
 npm install
 npm run dev
 ```
+
+The dev server also serves `/api/scan`. To test the live scanner locally, copy `.env.example` to `.env` and set `ANTHROPIC_API_KEY`. Without it the scanner returns the simulated result.
+
+Before a PR: `npm test` and `npm run build` must pass.
 
 Accounts and connectors:
 - GitHub: access to this repo, `gh auth login`
