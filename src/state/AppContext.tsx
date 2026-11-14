@@ -2,11 +2,15 @@ import { createContext, useCallback, useContext, useMemo, useState, type ReactNo
 import { AMOUNT_RANGE, clampAmount } from '../lib/finance';
 import type { QuizInput, View } from '../lib/types';
 
+export type DashboardTab = 'compare' | 'emails' | 'plan';
+
 interface AppState {
   view: View;
   setView: (view: View) => void;
   input: QuizInput;
   setInput: (patch: Partial<QuizInput>) => void;
+  tab: DashboardTab;
+  setTab: (tab: DashboardTab) => void;
 }
 
 const DEFAULT_INPUT: QuizInput = {
@@ -20,8 +24,14 @@ const DEFAULT_INPUT: QuizInput = {
 const AppContext = createContext<AppState | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [view, setView] = useState<View>('landing');
+  const [view, setViewState] = useState<View>('landing');
   const [input, setInputState] = useState<QuizInput>(DEFAULT_INPUT);
+  const [tab, setTab] = useState<DashboardTab>('compare');
+
+  const setView = useCallback((next: View) => {
+    setViewState(next);
+    window.scrollTo({ top: 0 });
+  }, []);
 
   const setInput = useCallback((patch: Partial<QuizInput>) => {
     setInputState((prev) => {
@@ -34,7 +44,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const value = useMemo(() => ({ view, setView, input, setInput }), [view, input, setInput]);
+  const value = useMemo(
+    () => ({ view, setView, input, setInput, tab, setTab }),
+    [view, setView, input, setInput, tab],
+  );
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 
