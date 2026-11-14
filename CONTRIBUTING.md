@@ -10,7 +10,7 @@ Hard rule: **no hardcoded output numbers.** Every APR, monthly payment, fee and 
 
 Lender profiles are simulated on purpose. Use fictional but realistic names (for example "Lone Star Federal Credit Union", "Harbor Online Lending"). Do not attach made-up rates to real lender brands.
 
-RateScout is presented as a standalone MVP product. Do not mention any competition, event, organizer, judges, deadlines or submission anywhere in the repo or the product: code, comments, UI text, README, commits, PRs, issues or file names. Event-related notes stay on each person's machine (see section 10).
+RateScout is presented only as a product. Internal planning notes never go into the repo or the site (code, comments, UI text, README, commits, PRs, file names). They stay on each person's machine (see section 10).
 
 ## 2. Scope (frozen)
 
