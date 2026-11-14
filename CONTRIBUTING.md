@@ -87,7 +87,7 @@ interface QuizInput {
 }
 ```
 
-The context exposes `view`, `setView`, `input`, `setInput` (partial update). The dashboard edits `amount` and `bankApr` through the same `setInput`, so every screen recalculates from one source.
+The context exposes `view`, `setView`, `input`, `setInput` (partial update), and `tab`, `setTab` for the dashboard tab (`compare`, `emails`, `plan`). The dashboard edits `amount` and `bankApr` through the same `setInput`, so every screen recalculates from one source.
 
 ### Finance API (`src/lib/finance.ts`)
 
