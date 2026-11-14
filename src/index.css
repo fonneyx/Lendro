@@ -1,1 +1,31 @@
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --color-ink: #0b1b33;
+  --color-ink-soft: #33415c;
+  --color-muted: #64748b;
+  --color-line: #e2e8f0;
+  --color-canvas: #f6f8fb;
+  --color-surface: #ffffff;
+  --color-save: #047857;
+  --color-save-soft: #ecfdf5;
+  --color-warn: #b45309;
+  --color-warn-soft: #fffbeb;
+  --color-risk: #b91c1c;
+  --color-risk-soft: #fef2f2;
+}
+
+body {
+  @apply bg-canvas font-sans text-ink antialiased;
+  font-size: 15px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
