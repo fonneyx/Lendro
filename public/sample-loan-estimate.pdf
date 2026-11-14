@@ -1,0 +1,63 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 2587 >>
+stream
+BT /F2 18 Tf 56 724 Td (LOAN ESTIMATE) Tj ET
+BT /F1 9 Tf 56 707 Td (SAMPLE DOCUMENT - fictional lender and borrower, for product testing only) Tj ET
+BT /F1 10 Tf 56 671 Td (Lender: Westbrook National Bank \(sample\)        Date issued: 11/03/2026) Tj ET
+BT /F1 10 Tf 56 653 Td (Applicant: Jordan Sample, Austin, TX 78701) Tj ET
+BT /F1 10 Tf 56 635 Td (Loan term: 30 years   Purpose: Purchase   Product: Fixed Rate   Loan type: Conventional) Tj ET
+BT /F1 10 Tf 56 617 Td (Loan amount: $350,000   Interest rate: 6.85%   Monthly principal & interest: $2,293.38) Tj ET
+BT /F1 10 Tf 56 599 Td (Rate lock: NO. Rate may change until locked.) Tj ET
+BT /F2 12 Tf 56 561 Td (CLOSING COST DETAILS) Tj ET
+BT /F2 11 Tf 56 542 Td (A. Origination Charges                                  $6,875) Tj ET
+BT /F1 10 Tf 56 524 Td (   1.00% of loan amount \(points\)                         $3,500) Tj ET
+BT /F1 10 Tf 56 506 Td (   Application fee                                       $495) Tj ET
+BT /F1 10 Tf 56 488 Td (   Underwriting fee                                      $1,195) Tj ET
+BT /F1 10 Tf 56 470 Td (   Processing fee                                        $650) Tj ET
+BT /F1 10 Tf 56 452 Td (   Rate lock fee                                         $425) Tj ET
+BT /F1 10 Tf 56 434 Td (   Document preparation fee                              $610) Tj ET
+BT /F2 11 Tf 56 415 Td (B. Services You Cannot Shop For                         $723) Tj ET
+BT /F1 10 Tf 56 397 Td (   Appraisal fee                                         $550) Tj ET
+BT /F1 10 Tf 56 379 Td (   Credit report fee                                     $48) Tj ET
+BT /F1 10 Tf 56 361 Td (   Flood determination fee                               $25) Tj ET
+BT /F1 10 Tf 56 343 Td (   Tax monitoring fee                                    $100) Tj ET
+BT /F2 11 Tf 56 324 Td (C. Services You Can Shop For                            $2,310) Tj ET
+BT /F1 10 Tf 56 306 Td (   Title - Lender's title insurance                      $1,450) Tj ET
+BT /F1 10 Tf 56 288 Td (   Title - Settlement agent fee                          $695) Tj ET
+BT /F1 10 Tf 56 270 Td (   Courier and wire fee                                  $165) Tj ET
+BT /F2 11 Tf 56 251 Td (E. Taxes and Other Government Fees                      $186) Tj ET
+BT /F1 10 Tf 56 233 Td (   Recording fees                                        $186) Tj ET
+BT /F2 11 Tf 56 196 Td (Total Loan Costs \(A + B + C\)                            $9,908) Tj ET
+BT /F1 9 Tf 56 161 Td (This sample is provided to test the RateScout fee scanner. It is not an offer of credit.) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000002890 00000 n 
+0000002960 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+3035
+%%EOF
