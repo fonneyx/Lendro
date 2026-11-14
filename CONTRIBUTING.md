@@ -255,8 +255,8 @@ Look: white and slate surfaces, deep navy text, emerald for savings, amber or re
 ## 9. Setup per person
 
 ```bash
-git clone https://github.com/fonneyx/Loaney.git
-cd Loaney
+git clone https://github.com/fonneyx/Lendro.git
+cd Lendro
 npm install
 npm run dev
 ```
