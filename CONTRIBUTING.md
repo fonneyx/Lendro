@@ -1,10 +1,10 @@
 # RateScout — team guide
 
-This file is the single source of truth for the hackathon build. Read it fully before writing code. If something here is unclear, ask in the team chat instead of guessing — do not change the scope.
+This file is the single source of truth for the MVP build. Read it fully before writing code. If something here is unclear, ask in the team chat instead of guessing — do not change the scope.
 
 ## 1. What we are building
 
-RateScout is a US-focused web app for young adults. A user answers a 4-step quiz (state, loan goal, amount, credit tier, optional bank offer) and we show how much they overpay by taking the first offer from their own bank (the "Single-Lender Trap"). We compare their bank against simulated lender profiles and show savings, then walk them through a free-trial paywall into a dashboard.
+RateScout is a US-focused web app for working adults aged 25–45. A user answers a 4-step quiz (state, loan goal, amount, credit tier, optional bank offer) and we show how much they overpay by taking the first offer from their own bank (the "Single-Lender Trap"). We compare their bank against simulated lender profiles and show savings, then walk them through a free-trial paywall into a dashboard.
 
 Hard rule: **no hardcoded output numbers.** Every APR, monthly payment, fee and savings figure on screen is calculated from the user's inputs by the functions in `src/lib/finance.ts`.
 
@@ -22,7 +22,7 @@ In scope — the five views and one API route below. Nothing else gets built. Ne
 | 3-day trial activation | `trial` | C |
 | Dashboard (comparator, PDF scanner, email previews) | `dashboard` | C (PDF scanner panel: A) |
 
-Out of scope for the hackathon: real payments (Stripe), real emails (Resend), database (Supabase), accounts/login, live rate feeds (FRED). Checkout buttons and emails are simulated, as the spec allows.
+Out of scope for the MVP: real payments (Stripe), real emails (Resend), database (Supabase), accounts/login, live rate feeds (FRED). Checkout buttons and emails are simulated, as the spec allows.
 
 ## 3. Stack
 
