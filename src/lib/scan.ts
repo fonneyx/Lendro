@@ -10,9 +10,9 @@ const SAMPLE_PDF: Record<Region, string> = {
   eu: '/sample-esis-eu.pdf',
   uk: '/sample-esis-uk.pdf',
 };
-export const samplePdfUrl = (market: Market) => SAMPLE_PDF[regionOf(market)];
+const samplePdfUrl = (market: Market) => SAMPLE_PDF[regionOf(market)];
 
-export function simulatedScan(input: QuizInput): ScanResult {
+function simulatedScan(input: QuizInput): ScanResult {
   const fees = simulatedLoanEstimateFees(input);
   const totalFlagged = flaggedTotal(fees);
   return {

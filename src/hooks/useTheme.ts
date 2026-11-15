@@ -17,7 +17,7 @@ function subscribe(listener: () => void) {
   };
 }
 
-export function setTheme(theme: Theme) {
+function setTheme(theme: Theme) {
   const root = document.documentElement;
   root.classList.add('theme-switching');
   root.classList.toggle('dark', theme === 'dark');

@@ -22,7 +22,7 @@ export default function Trial() {
   const steps = [
     { when: 'Today', date: shortDate(0), price: zero, detail: 'Full lender comparison, fee scanner and negotiation email.' },
     { when: 'Day 2', date: shortDate(1), price: 'Reminder', detail: 'An email 24 hours before your trial ends.' },
-    { when: 'Day 3', date: shortDate(2), price, detail: 'Cancel anytime in 1 click inside settings.' },
+    { when: 'Day 3', date: shortDate(2), price, detail: 'Cancel anytime in 1 click.' },
   ];
 
   return (
@@ -38,7 +38,7 @@ export default function Trial() {
         </button>
 
         <h1 className="mt-8 text-4xl leading-[1.05] font-extrabold tracking-tight text-slate-900 sm:text-5xl">
-          Don't sign a loan contract blindfolded. Unlock the entire market for {zero}.
+          Don't sign a loan contract blindfolded. Start Pro for {zero}.
         </h1>
 
         <p

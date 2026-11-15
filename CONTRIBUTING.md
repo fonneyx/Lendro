@@ -206,15 +206,15 @@ Quiz (progress bar "Step N of 4", Back button)
 - Submit shows a 1.5 s animation: "Comparing lender profiles in [Market] for your [Amount] [Goal]" then goes to preview
 
 Preview
-- Title: "Your AI Audit is Ready: You Could Save $[lifetimeSavings]!"
+- Title: "Your loan audit is ready" with "You could save up to $[lifetimeSavings]"
 - Bar chart: "Your Bank / [State] Baseline APR" vs "Best Matched Lender APR", plus monthly payment difference
-- Green badge: "4 programs found where you qualify with zero hidden origination fees"
+- Green badge: "4 sample lender profiles with no origination fee"
 - Locked section with `blur-sm select-none`: 4 lender name rows, assistance amount, negotiation script preview
-- Floating CTA: "Unlock Full AI Report & All 4 Lenders ($0 Today) →" (goes to trial)
+- Floating CTA: "Unlock Full Report ($0 today)" (goes to trial)
 
 Trial
-- Headline: "Don't sign a loan contract blindfolded. Unlock the entire market for $0"
-- Timeline: "Today: $0.00 due — Instant access to all 4+ matched lenders, grant finder, and PDF contract scanner" / "Day 2: Email reminder — Automated email 24 hours before your trial ends" / "Day 3: $29/month — Cancel anytime in 1 click inside settings"
+- Headline: "Don't sign a loan contract blindfolded. Start Pro for $0."
+- Timeline: "Today: $0.00 due — Instant access to all 4+ matched lenders, grant finder, and PDF contract scanner" / "Day 2: Email reminder — Automated email 24 hours before your trial ends" / "Day 3: $29/month — Cancel anytime in 1 click."
 - Buttons: Apple Pay, Google Pay, Stripe Link (all simulated, go to dashboard)
 - Text link: "Skip payment (MVP Preview Mode)"
 

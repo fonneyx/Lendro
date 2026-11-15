@@ -42,7 +42,7 @@ const PROOF = [
 ];
 
 const PRO_FEATURES = [
-  'Rate Watch alerts when a lender beats your rate',
+  'Rate Watch on your saved offer',
   'Unlimited offer scans and fee checks',
   'Negotiation emails written with your numbers',
   'Your loan plan, saved step by step',
@@ -214,7 +214,7 @@ export default function Landing() {
   const how = [
     { icon: FileSearch, title: 'Check your offer', text: 'Four questions, about 60 seconds. No personal details.' },
     { icon: Mail, title: 'Claim the better rate', text: `Scan your ${documentName(goal, market)}. Send the email we write for you.` },
-    { icon: BellRing, title: 'Keep it low', text: 'Rate Watch tells you when a lender beats your rate.' },
+    { icon: BellRing, title: 'Keep it low', text: 'Rate Watch keeps your saved offer next to the market.' },
   ];
 
   return (
@@ -249,7 +249,7 @@ export default function Landing() {
               Your bank's first offer is rarely its best one.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-600 sm:text-xl">
-              Lendro finds you a better rate, helps you claim it, and keeps watching.
+              Lendro shows what a better rate is worth, helps you ask for it, and keeps watching.
             </p>
             <div className="mt-9">
               <Button size="xl" onClick={startQuiz}>
