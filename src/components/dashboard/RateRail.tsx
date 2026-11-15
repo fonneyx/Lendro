@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { TrendingDown } from 'lucide-react';
 import { Panel, SampleLabel } from '../ui/primitives';
 import { AMOUNT_RANGE, baselineApr, clampAmount } from '../../lib/finance';
-import { currencySymbol, formatMoney, formatMoneyCents, formatPct } from '../../lib/format';
+import { currencySymbol, formatMoney, formatMoneyCents, formatPct, parseDecimal } from '../../lib/format';
 import { rateTerm } from '../../lib/market';
 import { cx } from '../../lib/cx';
 import type { Audit, QuizInput } from '../../lib/types';
@@ -32,7 +32,7 @@ function InputEditor({ input, setInput }: Pick<Props, 'input' | 'setInput'>) {
     setAmount(input.amount.toLocaleString('en-US'));
   }, [input.amount]);
 
-  const aprNumber = Number(apr);
+  const aprNumber = parseDecimal(apr);
   const aprInvalid = apr.trim() !== '' && !(Number.isFinite(aprNumber) && aprNumber > 0 && aprNumber <= 60);
 
   return (
@@ -71,9 +71,9 @@ function InputEditor({ input, setInput }: Pick<Props, 'input' | 'setInput'>) {
               value={apr}
               aria-describedby="rail-apr-hint"
               onChange={(e) => {
-                const text = e.target.value.replace(/[^\d.]/g, '');
+                const text = e.target.value.replace(/[^\d.,]/g, '');
                 setApr(text);
-                const n = Number(text);
+                const n = parseDecimal(text);
                 if (text.trim() === '') setInput({ bankApr: null });
                 else if (Number.isFinite(n) && n > 0 && n <= 60) setInput({ bankApr: n });
               }}

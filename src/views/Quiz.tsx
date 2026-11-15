@@ -5,7 +5,7 @@ import Button from '../components/ui/Button';
 import ChoiceCard from '../components/ui/ChoiceCard';
 import { ProgressBar } from '../components/ui/primitives';
 import { AMOUNT_RANGE, baselineApr, clampAmount } from '../lib/finance';
-import { currencySymbol, formatMoney, formatPct } from '../lib/format';
+import { currencySymbol, formatMoney, formatPct, parseDecimal } from '../lib/format';
 import { documentName, goalLabel, goalNoun, isUs, marketName, placeName, rateTerm, regionProfile } from '../lib/market';
 import { cx } from '../lib/cx';
 import { CREDIT_TIERS, EUROPE_MARKETS, GOALS, US_MARKETS } from '../lib/types';
@@ -101,7 +101,7 @@ function OfferStep({ onSubmit }: { onSubmit: () => void }) {
   const { input, setInput } = useApp();
   const [hasOffer, setHasOffer] = useState(input.bankApr !== null);
   const [text, setText] = useState(input.bankApr === null ? '' : String(input.bankApr));
-  const apr = Number(text);
+  const apr = parseDecimal(text);
   const valid = text.trim() !== '' && Number.isFinite(apr) && apr > 0 && apr <= 60;
   const baseline = baselineApr(input.goal, input.market, input.tier);
   const term = rateTerm(input.market);
@@ -136,7 +136,7 @@ function OfferStep({ onSubmit }: { onSubmit: () => void }) {
                 autoFocus
                 placeholder={baseline.toFixed(2)}
                 value={text}
-                onChange={(e) => setText(e.target.value.replace(/[^\d.]/g, ''))}
+                onChange={(e) => setText(e.target.value.replace(/[^\d.,]/g, ''))}
                 aria-describedby="apr-hint"
                 className="tnum w-full min-w-0 bg-transparent text-xl font-bold text-slate-900 outline-none placeholder:font-medium placeholder:text-slate-400"
               />
