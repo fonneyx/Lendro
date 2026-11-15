@@ -41,6 +41,32 @@ Flag each one:
 The note is one short sentence the borrower can act on. Do not invent fees that are not in the document.
 The summary is two sentences in plain English about what stands out. If the document is not a loan document, return an empty fees list and say so in the summary.`;
 
+// Base64 of the "%PDF-" file signature.
+const PDF_SIGNATURE = 'JVBERi0';
+
+// Per-instance limits. They cap abuse of the provider key between deploys; the account spend limit is the hard cap.
+const PER_IP_LIMIT = 5;
+const PER_IP_WINDOW_MS = 10 * 60_000;
+const GLOBAL_LIMIT = 60;
+const GLOBAL_WINDOW_MS = 60 * 60_000;
+const hits = new Map<string, number[]>();
+
+function allow(key: string, limit: number, windowMs: number, now: number): boolean {
+  const recent = (hits.get(key) ?? []).filter((t) => now - t < windowMs);
+  if (recent.length >= limit) {
+    hits.set(key, recent);
+    return false;
+  }
+  recent.push(now);
+  hits.set(key, recent);
+  return true;
+}
+
+function clientIp(request: Request): string {
+  const forwarded = request.headers.get('x-forwarded-for');
+  return forwarded?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || 'unknown';
+}
+
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 
@@ -60,6 +86,12 @@ export async function POST(request: Request): Promise<Response> {
   if (!input) return json({ error: 'invalid_input' }, 400);
   if (typeof pdf !== 'string' || pdf.length === 0) return json({ error: 'missing_pdf' }, 400);
   if (pdf.length > MAX_PDF_BASE64) return json({ error: 'pdf_too_large' }, 413);
+  if (!pdf.startsWith(PDF_SIGNATURE)) return json({ error: 'not_a_pdf' }, 415);
+
+  const now = Date.now();
+  if (!allow(`ip:${clientIp(request)}`, PER_IP_LIMIT, PER_IP_WINDOW_MS, now) || !allow('all', GLOBAL_LIMIT, GLOBAL_WINDOW_MS, now)) {
+    return json({ error: 'rate_limited' }, 429);
+  }
 
   const client = new Anthropic({ apiKey, timeout: 50_000, maxRetries: 1 });
   const context = `Borrower context: ${goalLabel(input.goal, input.market)} of ${formatMoney(input.amount, input.market)} in ${placeName(input.market)} (currency ${regionProfile(input.market).currency}).`;
