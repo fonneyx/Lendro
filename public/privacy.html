@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="How Lendro handles your data." />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <title>Privacy - Lendro</title>
+    <style>
+      :root { color-scheme: light dark; --bg: #ffffff; --text: #0f172a; --muted: #475569; --line: #e2e8f0; --link: #1d4ed8; }
+      @media (prefers-color-scheme: dark) { :root { --bg: #0b1120; --text: #e2e8f0; --muted: #94a3b8; --line: #1e293b; --link: #93c5fd; } }
+      body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 Inter, system-ui, -apple-system, "Segoe UI", sans-serif; }
+      main { max-width: 42rem; margin: 0 auto; padding: 3rem 1rem 4rem; }
+      h1 { font-size: 2rem; line-height: 1.15; margin: 1.5rem 0 0.5rem; letter-spacing: -0.02em; }
+      h2 { font-size: 1.1rem; margin: 2rem 0 0.25rem; }
+      p, li { color: var(--muted); }
+      a { color: var(--link); }
+      .back { font-weight: 600; text-decoration: none; }
+      .updated { font-size: 0.875rem; }
+      footer { border-top: 1px solid var(--line); margin-top: 3rem; padding-top: 1.5rem; font-size: 0.8rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <a class="back" href="/">&larr; Back to Lendro</a>
+      <h1>Privacy</h1>
+      <p class="updated">Last updated 15 November 2026</p>
+
+      <h2>The short version</h2>
+      <p>Lendro has no accounts and no database. We do not ask for your name, email, ID number or credit report, and we do not use analytics, advertising or tracking cookies.</p>
+
+      <h2>What stays in your browser</h2>
+      <p>Your quiz answers, your loan plan and your theme choice are saved in your browser's local storage so you can pick up where you left off. They never leave your device unless you scan a document. Clear your browser's site data to delete them.</p>
+
+      <h2>Documents you scan</h2>
+      <ul>
+        <li>When you scan a loan offer, the PDF and your quiz answers are sent to our server and passed to Anthropic's Claude API, which reads the fees in the document.</li>
+        <li>We do not store the file or the result. Anthropic processes it under its commercial terms, which do not allow training models on API data. See <a href="https://www.anthropic.com/legal/privacy" rel="noopener">Anthropic's privacy policy</a>.</li>
+        <li>Avoid uploading documents with details you do not want processed, such as account numbers. The sample documents contain no real personal data.</li>
+      </ul>
+
+      <h2>Service providers</h2>
+      <ul>
+        <li>Vercel hosts the site and may keep standard server logs, such as IP address and request time.</li>
+        <li>Anthropic analyzes documents you choose to scan.</li>
+        <li>Google Fonts serves the typeface, so your browser requests it from Google.</li>
+      </ul>
+
+      <h2>Payments and emails</h2>
+      <p>Checkout and reminder emails are simulated in this version. No card details are collected and no emails are sent.</p>
+
+      <h2>Your rights</h2>
+      <p>If you are in the EU or the UK, you can ask what data we hold about you and ask us to delete it. Because we keep no personal data on our servers, there is usually nothing to return or delete. Contact us through the <a href="https://github.com/fonneyx/Lendro/issues" rel="noopener">project's issue page</a>.</p>
+
+      <footer>Lendro is an educational and analytical tool, not a licensed mortgage broker, credit intermediary, lender, or registered financial advisor.</footer>
+    </main>
+  </body>
+</html>

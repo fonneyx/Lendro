@@ -10,7 +10,7 @@ Hard rule: **no hardcoded output numbers.** Every rate (APR in the US, APRC in E
 
 Lender profiles are simulated on purpose. Use fictional but realistic names per region (for example "Northpine Federal Credit Union", "Lindenau Cooperative Bank", "Northwold Building Society"). Do not attach made-up rates to real lender brands.
 
-Lendro is presented only as a product. Internal planning notes never go into the repo or the site (code, comments, UI text, README, commits, PRs, file names). They stay on each person's machine (see section 10).
+Lendro is presented only as a product. Internal planning notes never go into the repo or the site (code, comments, UI text, README, commits, PRs, file names). They stay on each person's machine (see section 9).
 
 ## 2. Scope (frozen)
 
@@ -71,7 +71,7 @@ DESIGN.md                   C
 package.json, lockfile, configs   A
 ```
 
-## 5. Shared contracts (agreed in hour 0, frozen after)
+## 5. Shared contracts (frozen)
 
 ### App state (`src/state/AppContext.tsx`)
 
@@ -231,18 +231,7 @@ Footer (every view): "Lendro is an AI-powered educational and analytical tool, n
 
 Look: white and slate surfaces, deep navy text, emerald for savings, amber or red for overpayment warnings. Details in `DESIGN.md`.
 
-## 7. Schedule (10 hours)
-
-| Hour | A | B | C |
-|---|---|---|---|
-| 0–1 | Scaffold, lint, CI, `App.tsx` view switch, `finance.ts` stubs with the signatures above | `AppContext.tsx` | `DESIGN.md` (website-design:web-design-system skill) |
-| 1–4 | finance math, lender data, tests | Landing, Quiz, scanning animation | Trial, Dashboard layout and tabs |
-| 4–7 | `api/scan.ts`, sample PDF, PdfScanner | Preview, Loan Plan + Rate Watch | Comparator table, email previews, Footer |
-| 7 | **Feature freeze — bug fixes only from here** | | |
-| 7–8.5 | Full run on the deployed Vercel URL, fix bugs | Mobile layout pass | Copy check |
-| 8.5–10 | Polish (impeccable skill), README, demo rehearsal, backup screen recording | | |
-
-## 8. Git rules (no merge conflicts)
+## 7. Git rules (no merge conflicts)
 
 1. Branch per task: `a/finance`, `b/quiz`, `c/dashboard`, etc.
 2. Merge into `main` every 1–2 hours through a small PR. Never sit on a branch longer than that.
@@ -252,7 +241,7 @@ Look: white and slate surfaces, deep navy text, emerald for savings, amber or re
 6. Line endings are normalized by `.gitattributes`; do not change it.
 7. Commit messages: short, lowercase, what changed. Example: `quiz: add amount slider and input`.
 
-## 9. Setup per person
+## 8. Setup per person
 
 ```bash
 git clone https://github.com/fonneyx/Lendro.git
@@ -271,20 +260,15 @@ Accounts and connectors:
 - Claude API key: A only, stored in Vercel project env vars as `ANTHROPIC_API_KEY`
 - Optional in Claude Code: the Vercel connector (read deploy logs)
 
-## 10. Working with Claude Code
+## 9. Working with Claude Code
 
-- Create a local `CLAUDE.md` (it is gitignored) with these two lines, so your Claude loads both files every session:
-  ```
-  @CONTRIBUTING.md
-  @.local/brief-notes.md
-  ```
-- Put the notes file you received from the team lead at `.local/brief-notes.md`. The `.local/` folder is gitignored. Never move it, copy it or quote it anywhere that gets committed.
+- Create a local `CLAUDE.md` (it is gitignored) that imports `@CONTRIBUTING.md`, so your Claude loads this guide every session. Personal notes go in `.local/`, which is also gitignored and never committed.
 - Turn off co-author lines: in `~/.claude/settings.json` add `"attribution": { "commit": "", "pr": "", "sessionUrl": false }`.
 - Useful skills: `karpathy-guidelines` (keeps changes small), `claude-api` (for `api/scan.ts`), `website-design:web-design-system` (DESIGN.md), `impeccable` (final polish), `code-review` and `simplify` before each PR.
-- Each person has a main and a backup Claude Pro account. Switch when you hit the usage limit. Use `/clear` between tasks to save usage.
+- Use `/clear` between tasks to save usage.
 - Tell your Claude which person you are (A, B or C) at the start of a session.
 
-## 11. Code style
+## 10. Code style
 
 - No emoji in code, comments, commits or docs.
 - Comments only where the reason is not obvious.
