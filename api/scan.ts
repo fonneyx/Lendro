@@ -1,4 +1,3 @@
-import Anthropic from '@anthropic-ai/sdk';
 import { buildNegotiationEmail, computeAudit, flaggedTotal } from '../src/lib/finance.js';
 import { formatMoney } from '../src/lib/format.js';
 import { goalLabel, placeName, regionProfile } from '../src/lib/market.js';
@@ -69,29 +68,6 @@ function clientIp(request: Request): string {
 
 class ScanError extends Error {}
 
-async function askClaude(apiKey: string, pdf: string, prompt: string): Promise<string> {
-  const client = new Anthropic({ apiKey, timeout: 50_000, maxRetries: 1 });
-  const response = await client.messages.create({
-    model: 'claude-opus-5-5',
-    max_tokens: 4096,
-    system: SYSTEM,
-    output_config: { effort: 'low', format: { type: 'json_schema', schema: SCHEMA } },
-    messages: [
-      {
-        role: 'user',
-        content: [
-          { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: pdf } },
-          { type: 'text', text: prompt },
-        ],
-      },
-    ],
-  });
-  if (response.stop_reason === 'refusal') throw new ScanError('refused');
-  const text = response.content.find((b) => b.type === 'text');
-  if (!text || text.type !== 'text') throw new ScanError('empty_response');
-  return text.text;
-}
-
 // Gemini Interactions API. The final model step holds the JSON text.
 async function askGemini(apiKey: string, pdf: string, prompt: string): Promise<string> {
   const res = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
@@ -124,9 +100,8 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 
 export async function POST(request: Request): Promise<Response> {
-  const claudeKey = process.env.ANTHROPIC_API_KEY;
-  const geminiKey = process.env.GEMINI_API_KEY;
-  if (!claudeKey && !geminiKey) return json({ error: 'scanner_unavailable' }, 503);
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return json({ error: 'scanner_unavailable' }, 503);
 
   let body: Record<string, unknown>;
   try {
@@ -152,7 +127,7 @@ export async function POST(request: Request): Promise<Response> {
 List and flag the fees in this document.`;
 
   try {
-    const raw = claudeKey ? await askClaude(claudeKey, pdf, prompt) : await askGemini(geminiKey as string, pdf, prompt);
+    const raw = await askGemini(apiKey, pdf, prompt);
     const parsed = JSON.parse(raw) as { fees?: unknown; summary?: unknown };
     const fees = parseScannedFees(parsed.fees);
     const summary = typeof parsed.summary === 'string' ? parsed.summary.slice(0, 600) : '';
