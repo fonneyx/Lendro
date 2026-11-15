@@ -33,7 +33,7 @@ Out of scope for the MVP: real payments (Stripe), real emails (Resend), database
 - Tailwind CSS
 - lucide-react for icons
 - Vitest for tests
-- One Vercel serverless function: `api/scan.ts` (calls the Claude API)
+- One Vercel serverless function: `api/scan.ts` (calls the Claude API or Gemini)
 - Hosting: Vercel (works in the US and Europe)
 
 Only A adds or removes npm packages. Ask A if you need one.
@@ -52,7 +52,7 @@ src/lib/types.ts            A   shared types (QuizInput, Audit, ScanResult, Mark
 src/lib/format.ts           A   formatMoney, formatMoneyCents, currencySymbol, formatPct
 src/lib/validate.ts         A   input and model-output validation
 src/lib/scan.ts             A   scanDocument(input, file?) client + simulatedScan fallback
-api/scan.ts                 A   Vercel function, Claude API
+api/scan.ts                 A   Vercel function, Claude API or Gemini
 src/components/dashboard/PdfDropzone.tsx  A
 src/state/AppContext.tsx    B   shared quiz state, current view, dashboard pane
 src/views/Landing.tsx       B
@@ -178,7 +178,7 @@ body: { pdfBase64: string, input: QuizInput }
         source: 'ai' | 'simulated' }
 ```
 
-- Uses the Claude API with the PDF as a document block and structured JSON output. The key lives in Vercel env var `ANTHROPIC_API_KEY`, never in the client or the repo.
+- Uses the Claude API with the PDF as a document block and structured JSON output. The key lives in Vercel env var `ANTHROPIC_API_KEY`, never in the client or the repo. If only `GEMINI_API_KEY` is set, the same prompt and schema go to Gemini (`GEMINI_MODEL`, default `gemini-3.5-flash-lite`).
 - When implementing, run the `claude-api` skill so the model id and SDK calls are current.
 - UI code calls `scanDocument(input, file)` from `src/lib/scan.ts`. With no file it loads the sample PDF for the user's region ("Test with Sample Bank PDF") and sends it through the same live pipeline.
 - The prompt covers US, EU and UK offer documents in English, German, French, Spanish, Italian or Dutch. Fee names come back in English with the original term in parentheses.
@@ -250,14 +250,14 @@ npm install
 npm run dev
 ```
 
-The dev server also serves `/api/scan`. To test the live scanner locally, copy `.env.example` to `.env` and set `ANTHROPIC_API_KEY`. Without it the scanner returns the simulated result.
+The dev server also serves `/api/scan`. To test the live scanner locally, copy `.env.example` to `.env` and set `ANTHROPIC_API_KEY` or `GEMINI_API_KEY`. Without it the scanner returns the simulated result.
 
 Before a PR: `npm test` and `npm run build` must pass.
 
 Accounts and connectors:
 - GitHub: access to this repo, `gh auth login`
 - Vercel: A connects the repo once; everyone gets preview URLs on PRs
-- Claude API key: A only, stored in Vercel project env vars as `ANTHROPIC_API_KEY`
+- AI key: A only, stored in Vercel project env vars as `ANTHROPIC_API_KEY` or `GEMINI_API_KEY`
 - Optional in Claude Code: the Vercel connector (read deploy logs)
 
 ## 9. Working with Claude Code
