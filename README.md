@@ -29,7 +29,7 @@ npm install
 npm run dev
 ```
 
-To use the live fee scanner, copy `.env.example` to `.env` and set `GEMINI_API_KEY`. Without a key the scanner shows a sample result.
+To use the live fee scanner, create a `.env` file with `GEMINI_API_KEY=your-key`. Without a key the scanner shows a sample result.
 
 `npm test` runs the finance tests.
 
