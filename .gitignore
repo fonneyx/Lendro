@@ -148,9 +148,10 @@ vite.config.ts.timestamp-*
 # Turbo Repo
 .turbo
 
-# Local AI tooling
+# Local tooling
 CLAUDE.md
 .claude/
+.impeccable/
 
 # Vercel
 .vercel
