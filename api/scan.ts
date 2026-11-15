@@ -67,12 +67,66 @@ function clientIp(request: Request): string {
   return forwarded?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || 'unknown';
 }
 
+class ScanError extends Error {}
+
+async function askClaude(apiKey: string, pdf: string, prompt: string): Promise<string> {
+  const client = new Anthropic({ apiKey, timeout: 50_000, maxRetries: 1 });
+  const response = await client.messages.create({
+    model: 'claude-opus-5-5',
+    max_tokens: 4096,
+    system: SYSTEM,
+    output_config: { effort: 'low', format: { type: 'json_schema', schema: SCHEMA } },
+    messages: [
+      {
+        role: 'user',
+        content: [
+          { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: pdf } },
+          { type: 'text', text: prompt },
+        ],
+      },
+    ],
+  });
+  if (response.stop_reason === 'refusal') throw new ScanError('refused');
+  const text = response.content.find((b) => b.type === 'text');
+  if (!text || text.type !== 'text') throw new ScanError('empty_response');
+  return text.text;
+}
+
+// Gemini Interactions API. The final model step holds the JSON text.
+async function askGemini(apiKey: string, pdf: string, prompt: string): Promise<string> {
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-goog-api-key': apiKey, 'Api-Revision': '2026-05-20' },
+    signal: AbortSignal.timeout(50_000),
+    body: JSON.stringify({
+      model: process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite',
+      system_instruction: SYSTEM,
+      store: false,
+      input: [
+        { type: 'document', data: pdf, mime_type: 'application/pdf' },
+        { type: 'text', text: prompt },
+      ],
+      response_format: { type: 'text', mime_type: 'application/json', schema: SCHEMA },
+    }),
+  });
+  if (!res.ok) throw new Error(`gemini ${res.status}: ${(await res.text()).slice(0, 300)}`);
+  const data = (await res.json()) as { output_text?: string; steps?: { content?: { text?: string }[] }[] };
+  if (typeof data.output_text === 'string') return data.output_text;
+  const steps = data.steps ?? [];
+  for (let i = steps.length - 1; i >= 0; i--) {
+    const text = steps[i].content?.find((c) => typeof c.text === 'string')?.text;
+    if (text) return text;
+  }
+  throw new ScanError('empty_response');
+}
+
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 
 export async function POST(request: Request): Promise<Response> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return json({ error: 'scanner_unavailable' }, 503);
+  const claudeKey = process.env.ANTHROPIC_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY;
+  if (!claudeKey && !geminiKey) return json({ error: 'scanner_unavailable' }, 503);
 
   let body: Record<string, unknown>;
   try {
@@ -93,31 +147,13 @@ export async function POST(request: Request): Promise<Response> {
     return json({ error: 'rate_limited' }, 429);
   }
 
-  const client = new Anthropic({ apiKey, timeout: 50_000, maxRetries: 1 });
   const context = `Borrower context: ${goalLabel(input.goal, input.market)} of ${formatMoney(input.amount, input.market)} in ${placeName(input.market)} (currency ${regionProfile(input.market).currency}).`;
+  const prompt = `${context}
+List and flag the fees in this document.`;
 
   try {
-    const response = await client.messages.create({
-      model: 'claude-opus-5-5',
-      max_tokens: 4096,
-      system: SYSTEM,
-      output_config: { effort: 'low', format: { type: 'json_schema', schema: SCHEMA } },
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: pdf } },
-            { type: 'text', text: `${context}\nList and flag the fees in this document.` },
-          ],
-        },
-      ],
-    });
-
-    if (response.stop_reason === 'refusal') return json({ error: 'refused' }, 502);
-    const text = response.content.find((b) => b.type === 'text');
-    if (!text || text.type !== 'text') return json({ error: 'empty_response' }, 502);
-
-    const parsed = JSON.parse(text.text) as { fees?: unknown; summary?: unknown };
+    const raw = claudeKey ? await askClaude(claudeKey, pdf, prompt) : await askGemini(geminiKey as string, pdf, prompt);
+    const parsed = JSON.parse(raw) as { fees?: unknown; summary?: unknown };
     const fees = parseScannedFees(parsed.fees);
     const summary = typeof parsed.summary === 'string' ? parsed.summary.slice(0, 600) : '';
     if (fees.length === 0) return json({ error: 'no_fees_found', summary }, 422);
@@ -131,6 +167,7 @@ export async function POST(request: Request): Promise<Response> {
     };
     return json(result);
   } catch (err) {
+    if (err instanceof ScanError) return json({ error: err.message }, 502);
     console.error('scan failed', err instanceof Error ? err.message : err);
     return json({ error: 'scan_failed' }, 502);
   }

@@ -61,7 +61,7 @@ export default function Landing() {
   const how = [
     { icon: FileSearch, title: 'Check your offer', text: 'Four questions, about 60 seconds. No personal details.' },
     { icon: Mail, title: 'Claim the better rate', text: `Scan your ${documentName(goal, market)}. Send the email we write for you.` },
-    { icon: BellRing, title: 'Keep it low', text: 'Rate Watch tells you when a lender beats your rate.' },
+    { icon: BellRing, title: 'Keep it low', text: 'Rate Watch keeps your saved offer next to the market.' },
   ];
 
   const page = (

@@ -34,15 +34,15 @@
 
       <h2>Documents you scan</h2>
       <ul>
-        <li>When you scan a loan offer, the PDF and your quiz answers are sent to our server and passed to Anthropic's Claude API, which reads the fees in the document.</li>
-        <li>We do not store the file or the result. Anthropic processes it under its commercial terms, which do not allow training models on API data. See <a href="https://www.anthropic.com/legal/privacy" rel="noopener">Anthropic's privacy policy</a>.</li>
+        <li>When you scan a loan offer, the PDF and a short summary of your quiz answers (loan type, amount, location) are sent to our server and passed to Google's Gemini API, which reads the fees in the document.</li>
+        <li>We do not store the file or the result, and we ask Google not to store the request. Google processes it under the <a href="https://ai.google.dev/gemini-api/terms" rel="noopener">Gemini API terms</a>.</li>
         <li>Avoid uploading documents with details you do not want processed, such as account numbers. The sample documents contain no real personal data.</li>
       </ul>
 
       <h2>Service providers</h2>
       <ul>
         <li>Vercel hosts the site and may keep standard server logs, such as IP address and request time.</li>
-        <li>Anthropic analyzes documents you choose to scan.</li>
+        <li>Google (Gemini API) analyzes documents you choose to scan.</li>
         <li>Google Fonts serves the typeface, so your browser requests it from Google.</li>
       </ul>
 

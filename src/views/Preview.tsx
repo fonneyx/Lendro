@@ -28,7 +28,7 @@ export default function Preview() {
   return (
     <Shell>
       <div className="mx-auto max-w-4xl px-4 pt-10 pb-32 sm:px-6 sm:pt-16 lg:pb-24">
-        <p className="text-lg font-semibold text-slate-500">Your AI Audit is Ready!</p>
+        <p className="text-lg font-semibold text-slate-500">Your loan audit is ready</p>
 
         {audit.alreadyCompetitive ? (
           <h1 className="mt-3 text-4xl leading-[1.05] font-extrabold tracking-tight text-slate-900 sm:text-6xl">
@@ -63,7 +63,7 @@ export default function Preview() {
             {zeroFee > 0 && (
               <p className="flex items-start gap-2 rounded-xl bg-emerald-50 p-3 text-sm font-medium text-emerald-800">
                 <BadgeCheck className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-                {zeroFee} programs found where you qualify with zero hidden {feeTerm(input.market)}s
+                {zeroFee} sample lender profiles with no {feeTerm(input.market)}
               </p>
             )}
           </div>
