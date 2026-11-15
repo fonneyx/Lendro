@@ -1,13 +1,18 @@
 import { clampAmount } from './finance.js';
 import type { FeeFlag, QuizInput, ScannedFee } from './types.js';
-import { CREDIT_TIERS, GOALS, US_STATES } from './types.js';
+import { CREDIT_TIERS, GOALS, MARKET_LIST } from './types.js';
+import type { Market } from './types.js';
+
+// Saves made before Europe was added stored a US state code in `state`.
+const LEGACY_STATES: Record<string, Market> = { TX: 'us-tx', CA: 'us-ca', NY: 'us-ny', FL: 'us-fl', IL: 'us-il' };
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
 
 export function parseQuizInput(raw: unknown): QuizInput | null {
   if (!isObject(raw)) return null;
-  const { state, goal, amount, tier, bankApr } = raw;
-  if (!US_STATES.includes(state as QuizInput['state'])) return null;
+  const { goal, amount, tier, bankApr } = raw;
+  const market = typeof raw.state === 'string' && raw.market === undefined ? LEGACY_STATES[raw.state] : raw.market;
+  if (!MARKET_LIST.includes(market as Market)) return null;
   if (!GOALS.includes(goal as QuizInput['goal'])) return null;
   if (!CREDIT_TIERS.includes(tier as QuizInput['tier'])) return null;
   if (typeof amount !== 'number' || !Number.isFinite(amount)) return null;
@@ -16,7 +21,7 @@ export function parseQuizInput(raw: unknown): QuizInput | null {
   }
   const g = goal as QuizInput['goal'];
   return {
-    state: state as QuizInput['state'],
+    market: market as Market,
     goal: g,
     tier: tier as QuizInput['tier'],
     amount: clampAmount(g, amount),

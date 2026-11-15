@@ -1,0 +1,53 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 1651 >>
+stream
+BT /F2 16 Tf 56 726 Td (EUROPEAN STANDARDISED INFORMATION SHEET \(ESIS\)) Tj ET
+BT /F1 9 Tf 56 709 Td (SAMPLE DOCUMENT - fictional lender and borrower, for product testing only) Tj ET
+BT /F1 10 Tf 56 673 Td (Lender: Aldenhof Bank AG \(sample\)        Date issued: 03.11.2026) Tj ET
+BT /F1 10 Tf 56 655 Td (Borrower: Alex Sample, Munich, Germany) Tj ET
+BT /F1 10 Tf 56 637 Td (Purpose: Purchase of residential property   Duration: 25 years   Fixed rate: 15 years) Tj ET
+BT /F1 10 Tf 56 619 Td (Loan amount: EUR 300,000   Borrowing rate: 3.85%   APRC: 4.21%   Monthly instalment: EUR 1,558.77) Tj ET
+BT /F2 12 Tf 56 581 Td (4. INTEREST RATE AND OTHER COSTS) Tj ET
+BT /F2 11 Tf 56 562 Td (One-off costs payable to the lender) Tj ET
+BT /F1 10 Tf 56 544 Td (   Processing fee \(Bearbeitungsgebuehr\)                  EUR 1,800) Tj ET
+BT /F1 10 Tf 56 526 Td (   Valuation fee                                         EUR 450) Tj ET
+BT /F2 11 Tf 56 507 Td (Costs payable to third parties) Tj ET
+BT /F1 10 Tf 56 489 Td (   Broker commission                                     EUR 3,570) Tj ET
+BT /F1 10 Tf 56 471 Td (   Notary and land registry fees                         EUR 4,500) Tj ET
+BT /F2 11 Tf 56 452 Td (Recurring costs) Tj ET
+BT /F1 10 Tf 56 434 Td (   Account maintenance fee \(EUR 20 per month\)            EUR 240 per year) Tj ET
+BT /F1 10 Tf 56 416 Td (   Residual debt insurance, required with this offer      EUR 2,100) Tj ET
+BT /F2 11 Tf 56 379 Td (Total amount payable by the borrower                     EUR 486,051) Tj ET
+BT /F1 9 Tf 56 344 Td (This sample is provided to test the Lendro fee scanner. It is not an offer of credit.) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000001954 00000 n 
+0000002051 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+2153
+%%EOF

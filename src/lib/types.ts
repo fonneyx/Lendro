@@ -1,20 +1,23 @@
 export type View = 'landing' | 'quiz' | 'preview' | 'trial' | 'dashboard';
 export type Goal = 'mortgage' | 'auto' | 'bnpl';
-export type UsState = 'TX' | 'CA' | 'NY' | 'FL' | 'IL';
+export type Region = 'us' | 'eu' | 'uk';
+export type Market = 'us-tx' | 'us-ca' | 'us-ny' | 'us-fl' | 'us-il' | 'de' | 'fr' | 'es' | 'it' | 'nl' | 'ie' | 'uk';
+export type Currency = 'USD' | 'EUR' | 'GBP';
 export type CreditTier = 'excellent' | 'good' | 'fair' | 'building';
 
 export interface QuizInput {
-  state: UsState;
+  market: Market;
   goal: Goal;
   amount: number;
   tier: CreditTier;
+  // Percent, e.g. 6.85 (APR in the US, APRC in Europe). null = compare against the market baseline.
   bankApr: number | null;
 }
 
 export interface LenderQuote {
   id: string;
   name: string;
-  kind: 'credit_union' | 'online_lender';
+  kind: 'mutual' | 'online';
   apr: number;
   originationFee: number;
   monthly: number;
@@ -32,9 +35,7 @@ export interface Audit {
   monthlyDiff: number;
   lifetimeSavings: number;
   alreadyCompetitive: boolean;
-  previewLenders: LenderQuote[];
   tableLenders: LenderQuote[];
-  assistanceEstimate: number;
   bankFeesFlaggedEstimate: number;
 }
 
@@ -56,26 +57,7 @@ export interface ScanResult {
 }
 
 export const GOALS: Goal[] = ['mortgage', 'auto', 'bnpl'];
-export const US_STATES: UsState[] = ['TX', 'CA', 'NY', 'FL', 'IL'];
 export const CREDIT_TIERS: CreditTier[] = ['excellent', 'good', 'fair', 'building'];
-
-export const STATE_NAMES: Record<UsState, string> = {
-  TX: 'Texas',
-  CA: 'California',
-  NY: 'New York',
-  FL: 'Florida',
-  IL: 'Illinois',
-};
-
-export const GOAL_LABELS: Record<Goal, string> = {
-  mortgage: 'Home Mortgage',
-  auto: 'Auto Loan',
-  bnpl: 'BNPL Installment',
-};
-
-export const TIER_LABELS: Record<CreditTier, string> = {
-  excellent: '740+ Excellent',
-  good: '680–739 Good',
-  fair: '620–679 Fair',
-  building: 'Below 620 Building',
-};
+export const US_MARKETS: Market[] = ['us-tx', 'us-ca', 'us-ny', 'us-fl', 'us-il'];
+export const EUROPE_MARKETS: Market[] = ['de', 'fr', 'es', 'it', 'nl', 'ie', 'uk'];
+export const MARKET_LIST: Market[] = [...US_MARKETS, ...EUROPE_MARKETS];

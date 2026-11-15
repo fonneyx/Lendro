@@ -4,11 +4,11 @@ This file is the single source of truth for the MVP build. Read it fully before 
 
 ## 1. What we are building
 
-Lendro is a US-focused web app for working adults aged 25–45. A user answers a 4-step quiz (state, loan goal, amount, credit tier, optional bank offer) and we show how much they overpay by taking the first offer from their own bank (the "Single-Lender Trap"). We compare their bank against simulated lender profiles and show savings, then walk them through a free-trial paywall into a dashboard.
+Lendro is a web app for working adults aged 25–45 in the United States, the eurozone and the United Kingdom. A user answers a 4-step quiz (location, loan goal, amount, credit tier, optional bank offer) and we show how much they overpay by taking the first offer from their own bank (the "Single-Lender Trap"). We compare their bank against simulated lender profiles and show savings, then walk them through a free-trial paywall into a dashboard.
 
-Hard rule: **no hardcoded output numbers.** Every APR, monthly payment, fee and savings figure on screen is calculated from the user's inputs by the functions in `src/lib/finance.ts`.
+Hard rule: **no hardcoded output numbers.** Every rate (APR in the US, APRC in Europe), monthly payment, fee and savings figure on screen is calculated from the user's inputs by the functions in `src/lib/finance.ts`.
 
-Lender profiles are simulated on purpose. Use fictional but realistic names (for example "Lone Star Federal Credit Union", "Harbor Online Lending"). Do not attach made-up rates to real lender brands.
+Lender profiles are simulated on purpose. Use fictional but realistic names per region (for example "Northpine Federal Credit Union", "Lindenau Cooperative Bank", "Northwold Building Society"). Do not attach made-up rates to real lender brands.
 
 Lendro is presented only as a product. Internal planning notes never go into the repo or the site (code, comments, UI text, README, commits, PRs, file names). They stay on each person's machine (see section 10).
 
@@ -45,25 +45,28 @@ Edit only the files you own. If you need a change in someone else's file, messag
 ```
 src/lib/finance.ts          A   all loan math
 src/lib/finance.test.ts     A
-src/data/lenders.ts         A   simulated lender profiles + rate tables
-src/lib/types.ts            A   shared types and label maps (QuizInput, Audit, ScanResult)
-src/lib/format.ts           A   formatUSD, formatUSDCents, formatPct
+src/data/markets.ts         A   regions (us, eu, uk) and markets: currency, rate term, rates, labels, documents
+src/data/lenders.ts         A   simulated lender profiles and fee templates per region
+src/lib/market.ts           A   market helpers (regionOf, rateTerm, goalLabel, documentName, placeName, detectMarket)
+src/lib/types.ts            A   shared types (QuizInput, Audit, ScanResult, Market)
+src/lib/format.ts           A   formatMoney, formatMoneyCents, currencySymbol, formatPct
 src/lib/validate.ts         A   input and model-output validation
 src/lib/scan.ts             A   scanDocument(input, file?) client + simulatedScan fallback
 api/scan.ts                 A   Vercel function, Claude API
-src/components/PdfScanner.tsx  A
-src/state/AppContext.tsx    B   shared quiz state + current view
+src/components/dashboard/PdfDropzone.tsx  A
+src/state/AppContext.tsx    B   shared quiz state, current view, dashboard pane
 src/views/Landing.tsx       B
 src/views/Quiz.tsx          B
 src/views/Preview.tsx       B
-src/components/Navbar.tsx   B
-src/components/LoanPlan.tsx B   plan checklist, progress, rate watch
-src/lib/plan.ts             B   plan steps per goal + localStorage save/load
+src/components/layout/Navbar.tsx  B
+src/components/dashboard/Sidebar.tsx  B   plan checklist and progress
+src/lib/plan.ts             B   plan steps per region and goal + localStorage save/load
 src/views/Trial.tsx         C
 src/views/Dashboard.tsx     C
-src/components/EmailCard.tsx   C
-src/components/Footer.tsx   C
-src/App.tsx                 A   (view switch only, set up in hour 0, then frozen)
+src/components/dashboard/Thread.tsx, RateRail.tsx  C
+src/components/layout/Footer.tsx, Shell.tsx  C
+src/components/ui/*         C
+src/App.tsx                 A   (view switch only)
 DESIGN.md                   C
 package.json, lockfile, configs   A
 ```
@@ -75,73 +78,68 @@ package.json, lockfile, configs   A
 ```ts
 type View = 'landing' | 'quiz' | 'preview' | 'trial' | 'dashboard';
 type Goal = 'mortgage' | 'auto' | 'bnpl';
-type UsState = 'TX' | 'CA' | 'NY' | 'FL' | 'IL';
+type Region = 'us' | 'eu' | 'uk';
+type Market = 'us-tx' | 'us-ca' | 'us-ny' | 'us-fl' | 'us-il' | 'de' | 'fr' | 'es' | 'it' | 'nl' | 'ie' | 'uk';
 type CreditTier = 'excellent' | 'good' | 'fair' | 'building';
 
 interface QuizInput {
-  state: UsState;
+  market: Market;
   goal: Goal;
-  amount: number;          // dollars
+  amount: number;          // in the market's currency
   tier: CreditTier;
-  bankApr: number | null;  // percent, e.g. 6.85; null = "No, just exploring"
+  bankApr: number | null;  // percent (APR or APRC), e.g. 6.85; null = "No, just exploring"
 }
 ```
 
-The context exposes `view`, `setView`, `input`, `setInput` (partial update), and `tab`, `setTab` for the dashboard tab (`compare`, `emails`, `plan`). The dashboard edits `amount` and `bankApr` through the same `setInput`, so every screen recalculates from one source.
+The context exposes `view`, `setView`, `input`, `setInput` (partial update), and `pane`, `setPane` for the dashboard section shown first on phones (`analyst`, `plan`, `rates`). The first market is guessed from the browser language, or taken from the saved plan on return visits. Changing the goal or region resets the amount to that region's default. The dashboard edits `amount` and `bankApr` through the same `setInput`, so every screen recalculates from one source.
 
 ### Finance API (`src/lib/finance.ts`)
 
 ```ts
-export const TERM_MONTHS: Record<Goal, number>;            // mortgage 360, auto 60, bnpl 12
-export const AMOUNT_RANGE: Record<Goal, { min: number; max: number; step: number; default: number }>;
-  // mortgage 50,000–1,500,000 step 5,000 default 350,000
-  // auto     5,000–150,000   step 500   default 32,000
-  // bnpl     200–20,000      step 100   default 3,000
+export const AMOUNT_RANGE: Record<Goal, { min: number; max: number; step: number }>;
+  // mortgage 50,000–1,500,000 step 5,000; auto 5,000–150,000 step 500; bnpl 200–20,000 step 100
 
 export function monthlyPayment(principal: number, aprPct: number, months: number): number;
-  // standard amortization; aprPct 0 => principal / months
 export function totalInterest(principal: number, aprPct: number, months: number): number;
-export function baselineApr(goal: Goal, state: UsState, tier: CreditTier): number;
-  // "state market baseline" used when bankApr is null
-export function matchLenders(input: QuizInput, options?: { rateShift?: number }): LenderQuote[];   // sorted, best APR first
+export function baselineApr(goal: Goal, market: Market, tier: CreditTier): number;
+  // market baseline used when bankApr is null
+export function matchLenders(input: QuizInput, options?: { rateShift?: number }): LenderQuote[];   // regional lenders, best rate first
 export function computeAudit(input: QuizInput, options?: { rateShift?: number }): Audit;
   // rateShift moves the lender market only; the bank side stays fixed (used by Rate Watch)
 export function buildNegotiationEmail(input: QuizInput, audit: Audit, fees: ScannedFee[]): string;
+  // local currency, rate term, fee term and document name
 
 interface LenderQuote {
-  id: string; name: string; kind: 'credit_union' | 'online_lender';
+  id: string; name: string; kind: 'mutual' | 'online';   // mutual = credit union / cooperative bank / building society
   apr: number; originationFee: number; monthly: number;
   totalInterest: number; lifetimeSavings: number;   // vs the user's bank, never below 0
 }
 
 interface Audit {
-  bankLabel: string;        // "Your Bank" or "Texas Baseline"
+  bankLabel: string;        // "Your Bank" or "<Market> Baseline"
   bankApr: number; bankFee: number; bankMonthly: number; bankTotalInterest: number;
   best: LenderQuote;
-  monthlyDiff: number;      // bankMonthly - best.monthly
+  monthlyDiff: number;
   lifetimeSavings: number;  // (bank interest + bank fee) - (best interest + best fee), floor 0
-  alreadyCompetitive: boolean;  // true when bank APR <= best APR
-  previewLenders: LenderQuote[];   // top 4 (preview screen)
-  tableLenders: LenderQuote[];     // top 5 (dashboard table)
-  assistanceEstimate: number;      // mortgage: down-payment grant estimate; auto/bnpl: membership/promo bonus
+  alreadyCompetitive: boolean;
+  tableLenders: LenderQuote[];     // top 5
   bankFeesFlaggedEstimate: number; // used by the PDF scanner fallback
 }
 ```
 
-### Rate model (`src/data/lenders.ts`)
+### Markets (`src/data/markets.ts`, `src/data/lenders.ts`)
 
-Starting values. A may tune them, but the shapes stay the same.
+Each region sets its currency, rate term, loan terms, default amounts, base rates, credit tier add-ons, bank fee rate, labels and offer documents. Each market adds a rate adjustment.
 
-- Base APR (excellent tier, national): mortgage 6.25, auto 6.00, bnpl 12.00
-- Credit tier add-on (excellent / good / fair / building):
-  - mortgage 0 / 0.45 / 1.10 / 2.00
-  - auto 0 / 1.50 / 4.50 / 8.50
-  - bnpl 0 / 4.00 / 9.00 / 15.00
-- State adjustment: TX +0.05, CA −0.05, NY +0.10, FL +0.08, IL 0
-- Bank origination fee: mortgage 1.0% of amount, auto 1.0%, bnpl 2.5%
-- Matched lenders: 6 to 8 profiles, each with an APR discount from baseline (mortgage 0.30–0.85, auto 0.8–2.5, bnpl 3–8, floored at 0) and an origination fee (top 4 are $0)
-- Mortgage assistance estimate: 3% of amount, capped by state (TX 10,000; CA 15,000; NY 15,000; FL 10,000; IL 7,500). Auto/BNPL: 1% of amount, capped at 500
-- Lifetime savings that would be negative show as 0 and the UI says "You already have a competitive rate"
+| Region | Markets | Currency | Rate term | Mortgage term | Offer document | Mutual lenders | Price |
+|---|---|---|---|---|---|---|---|
+| us | Texas, California, New York, Florida, Illinois | USD | APR | 30 years | Loan Estimate | Credit unions | $29/mo |
+| eu | Germany, France, Spain, Italy, Netherlands, Ireland | EUR | APRC | 25 years | ESIS, SECCI form | Cooperative banks | €29/mo |
+| uk | United Kingdom | GBP | APRC | 25 years | Mortgage illustration (ESIS) | Building societies | £24/mo |
+
+- Each region has 7 sample lenders. The top 4 charge no fee.
+- Lifetime savings that would be negative show as 0 and the UI says "You already have a competitive rate".
+- Sample PDFs: `public/sample-loan-estimate.pdf` (US), `public/sample-esis-eu.pdf`, `public/sample-esis-uk.pdf`.
 
 ### Loan Plan and Rate Watch (`src/lib/plan.ts`)
 
@@ -157,17 +155,16 @@ interface SavedAudit {
   rateShift: number;            // percent points, 0 normally; demo control sets e.g. -0.25
 }
 
-export function planSteps(goal: Goal): { id: string; title: string; detail: string }[];
+export function planSteps(goal: Goal, market: Market): { id: string; title: string; detail: string }[];
 export function loadSaved(): SavedAudit | null;      // localStorage key "lendro:v1", try/catch, null on any error
 export function saveAudit(s: SavedAudit): void;
 ```
 
 - Saved automatically when the user reaches the dashboard. No account needed.
-- Plan steps per goal, 6 to 8 each. Mortgage example: request Loan Estimates from 3 lenders, scan each with the PDF scanner, send the negotiation email, compare final APR and fees, lock the rate, review the Closing Disclosure. Write similar lists for auto and BNPL.
+- Plan steps per region and goal, 6 each. They follow local rules: Loan Estimate and Closing Disclosure in the US, ESIS and the reflection period in the EU, Decisions in Principle and early repayment charges in the UK.
 - Progress bar shows completed / total. Checking a step saves immediately.
 - Rate Watch re-runs `computeAudit` with the saved input and `{ rateShift }`, and shows the change in APR, monthly payment and lifetime savings since `createdAt`.
-- Demo control, clearly labeled "Demo: simulate a market rate change", sets `rateShift` to −0.25 and the numbers recalculate through the same functions. This lines up with the Day-2 "Rate Drop Alert" email.
-- On the landing page, if `loadSaved()` returns data, show "Welcome back — continue your plan" linking to the dashboard plan tab.
+- Demo control, clearly labeled "Demo: simulate a market rate change", sets `rateShift` to −0.25 and the numbers recalculate through the same functions. - On the landing page, if `loadSaved()` returns data, show "Welcome back" with plan progress and "Continue your plan", which opens the dashboard on the plan.
 
 ### PDF scan API (`api/scan.ts`)
 
@@ -183,27 +180,30 @@ body: { pdfBase64: string, input: QuizInput }
 
 - Uses the Claude API with the PDF as a document block and structured JSON output. The key lives in Vercel env var `ANTHROPIC_API_KEY`, never in the client or the repo.
 - When implementing, run the `claude-api` skill so the model id and SDK calls are current.
-- UI code calls `scanDocument(input, file)` from `src/lib/scan.ts`. With no file it loads `public/sample-loan-estimate.pdf` ("Test with Sample Bank PDF") and sends it through the same live pipeline.
+- UI code calls `scanDocument(input, file)` from `src/lib/scan.ts`. With no file it loads the sample PDF for the user's region ("Test with Sample Bank PDF") and sends it through the same live pipeline.
+- The prompt covers US, EU and UK offer documents in English, German, French, Spanish, Italian or Dutch. Fee names come back in English with the original term in parentheses.
 - Claude only extracts and flags fees. Totals and the email script are computed in code.
-- If the call fails or times out (30 s), or no key is set,, `src/lib/scan.ts` returns a simulated result from `computeAudit` with `source: 'simulated'`. The demo must never show an error screen.
+- If the call fails or times out (30 s), or no key is set, `src/lib/scan.ts` returns a simulated result from `computeAudit` with `source: 'simulated'`. The demo must never show an error screen.
 - Uploaded files are analyzed and not stored. Say so in the scanner UI.
 
 ## 6. Screen copy (use these strings exactly)
 
-Navbar: logo "Lendro", trust badge "No SSN Required • Zero Credit Impact".
+Navbar: logo "Lendro", trust badge "No SSN Required • Zero Credit Impact" in the US and "No ID Number Required • Zero Credit Impact" in Europe (phones show only "Zero Credit Impact"). The landing page adds one "Check my offer" button.
 
-Landing
-- Headline: "One bank only cares about its own profit. Let AI check 100+ US loan programs for you in 60 seconds"
-- Subheadline: "80% of buyers overpay by $4,800+ simply by accepting the first offer from their primary bank."
-- CTA: "Run Free AI Rate Check →" (goes to quiz)
-- Value cards: "100+ Credit Unions & Lenders Scanned", "Zero Spam Calls or Hard Pulls", "Junk Fee & Loan Estimate Scanner"
+Landing (one primary action, short sentences, sources for every statistic)
+- Hero: "Your bank's first offer is rarely its best one." / "Compare it with [credit unions | cooperative banks | building societies] and online lenders in 60 seconds. See what you keep before you sign." / button "Check my loan offer" / "Free. No sign-up, no credit check." / a sample audit card for the visitor's market, labeled "Sample data"
+- Proof: 77% of US mortgage borrowers apply with only one lender (CFPB, 2015); $1,500 saved on average with one extra mortgage quote (Freddie Mac, 2018); £550 a year overpaid by 3 in 10 UK borrowers who missed a cheaper deal (FCA, 2018). Each links to its source.
+- "Same loan. Very different cost.": taking the first offer vs checking with Lendro
+- "Three steps. About a minute."
+- Calculator: loan type, location, amount and bank rate sliders, live savings from `computeAudit`; "See my full audit" carries the numbers into the quiz
+- Final: "Before you sign, spend 60 seconds." with the credit-score objection answered, and the same button
 
 Quiz (progress bar "Step N of 4", Back button)
-1. State dropdown (Texas, California, New York, Florida, Illinois) and goal cards (Home Mortgage, Auto Loan, BNPL Installment)
-2. Range slider and a dollar input box, both bound to `amount`; defaults change with the goal
-3. Credit pills: "740+ Excellent", "680–739 Good", "620–679 Fair", "Below 620 Building"
-4. "Do you already have an offer from a single bank?" — card "Yes, I have an offer" reveals an APR % input (e.g. 6.85); card "No, just exploring" uses the state baseline
-- Submit shows a 1.5 s animation: "Scanning 114 US lenders in [State] for a $[Amount] [Goal]..." then goes to preview
+1. Location dropdown grouped into United States (5 states) and Europe (6 eurozone countries and the United Kingdom), and goal cards with regional labels
+2. Range slider and an amount box in the local currency, both bound to `amount`; defaults change with the goal and region
+3. Credit pills: US score ranges ("740+ Excellent" ...); Europe uses history descriptions ("Excellent: No missed payments" ...)
+4. "Do you already have an offer from a single bank?" — card "Yes, I have an offer" reveals an APR or APRC input; card "No, just exploring" uses the market baseline
+- Submit shows a 1.5 s animation: "Comparing lender profiles in [Market] for your [Amount] [Goal]" then goes to preview
 
 Preview
 - Title: "Your AI Audit is Ready: You Could Save $[lifetimeSavings]!"

@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { buildNegotiationEmail, computeAudit, flaggedTotal } from '../src/lib/finance.js';
-import { GOAL_LABELS, STATE_NAMES } from '../src/lib/types.js';
+import { formatMoney } from '../src/lib/format.js';
+import { goalLabel, placeName, regionProfile } from '../src/lib/market.js';
 import type { ScanResult } from '../src/lib/types.js';
 import { parseQuizInput, parseScannedFees } from '../src/lib/validate.js';
 
@@ -30,13 +31,14 @@ const SCHEMA = {
   additionalProperties: false,
 };
 
-const SYSTEM = `You review US loan documents (Loan Estimates, auto loan contracts, installment agreements) for a borrower.
-List every fee or charge in the document with its dollar amount.
+const SYSTEM = `You review loan offer documents for a borrower: US Loan Estimates and auto or installment contracts, EU and UK mortgage sheets (ESIS), consumer credit forms (SECCI) and car finance agreements.
+The document may be in English, German, French, Spanish, Italian or Dutch. Write fee names in English, followed by the original term in parentheses when the document is not in English.
+List every fee or charge in the document with its amount in the document's currency, as a whole number.
 Flag each one:
 - "junk": duplicate admin fees, optional add-ons bundled without asking, charges most lenders do not have.
-- "negotiable": real charges that lenders often reduce or waive when shown a competing offer (origination, underwriting, points, doc fees).
-- "standard": third-party or government costs that are normal (appraisal, title, recording, taxes, registration).
-The note is one short sentence the borrower can act on. Use whole dollars. Do not invent fees that are not in the document.
+- "negotiable": real charges that lenders often reduce or waive when shown a competing offer (origination, arrangement, processing, product and broker fees, points, dealer fees).
+- "standard": third-party or government costs that are normal (valuation, appraisal, title, notary, land registry, recording, taxes, registration).
+The note is one short sentence the borrower can act on. Do not invent fees that are not in the document.
 The summary is two sentences in plain English about what stands out. If the document is not a loan document, return an empty fees list and say so in the summary.`;
 
 const json = (body: unknown, status = 200) =>
@@ -60,7 +62,7 @@ export async function POST(request: Request): Promise<Response> {
   if (pdf.length > MAX_PDF_BASE64) return json({ error: 'pdf_too_large' }, 413);
 
   const client = new Anthropic({ apiKey, timeout: 50_000, maxRetries: 1 });
-  const context = `Borrower context: ${GOAL_LABELS[input.goal]} of $${input.amount.toLocaleString('en-US')} in ${STATE_NAMES[input.state]}.`;
+  const context = `Borrower context: ${goalLabel(input.goal, input.market)} of ${formatMoney(input.amount, input.market)} in ${placeName(input.market)} (currency ${regionProfile(input.market).currency}).`;
 
   try {
     const response = await client.messages.create({

@@ -6,11 +6,13 @@ import { MAX_PDF_BYTES } from '../../lib/scan';
 
 interface Props {
   busy: boolean;
+  // Name of the offer document in the user's market, e.g. "Loan Estimate" or "ESIS".
+  docName: string;
   onFile: (file: File) => void;
   onSample: () => void;
 }
 
-export default function PdfDropzone({ busy, onFile, onSample }: Props) {
+export default function PdfDropzone({ busy, docName, onFile, onSample }: Props) {
   const picker = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
   const [error, setError] = useState('');
@@ -18,7 +20,7 @@ export default function PdfDropzone({ busy, onFile, onSample }: Props) {
   const accept = (file: File | undefined) => {
     if (!file) return;
     if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-      setError(`"${file.name}" is not a PDF. Export the Loan Estimate as a PDF and drop it again.`);
+      setError(`"${file.name}" is not a PDF. Export the ${docName} as a PDF and drop it again.`);
       return;
     }
     if (file.size > MAX_PDF_BYTES) {
@@ -48,7 +50,7 @@ export default function PdfDropzone({ busy, onFile, onSample }: Props) {
         )}
       >
         <UploadCloud className={cx('mx-auto size-9', over ? 'text-blue-600' : 'text-slate-400')} aria-hidden="true" />
-        <p className="mt-3 text-base font-bold tracking-tight text-slate-900">Drag and drop your Loan Estimate PDF</p>
+        <p className="mt-3 text-base font-bold tracking-tight text-slate-900">Drag and drop your {docName} PDF</p>
         <p className="mt-1 text-sm text-slate-500">Files are analyzed and not stored. PDF, up to 3 MB.</p>
         <div className="mt-5 flex flex-wrap justify-center gap-2.5">
           <Button size="md" disabled={busy} onClick={() => picker.current?.click()}>
@@ -64,7 +66,7 @@ export default function PdfDropzone({ busy, onFile, onSample }: Props) {
           accept="application/pdf,.pdf"
           className="sr-only"
           tabIndex={-1}
-          aria-label="Choose a Loan Estimate PDF"
+          aria-label={`Choose a ${docName} PDF`}
           onChange={(e) => {
             accept(e.target.files?.[0]);
             e.target.value = '';
