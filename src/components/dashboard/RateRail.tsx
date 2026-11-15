@@ -82,7 +82,7 @@ function InputEditor({ input, setInput }: Pick<Props, 'input' | 'setInput'>) {
             <span className="font-semibold text-slate-400">%</span>
           </div>
           <p id="rail-apr-hint" className={cx('mt-1 text-xs', aprInvalid ? 'font-medium text-amber-800' : 'text-slate-500')}>
-            {aprInvalid ? 'Enter a number between 0.1 and 60.' : 'Leave empty to compare against the state baseline.'}
+            {aprInvalid ? 'Enter a number between 0.1 and 60.' : 'Leave empty to compare against the market baseline.'}
           </p>
         </div>
       </div>

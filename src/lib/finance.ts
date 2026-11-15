@@ -30,7 +30,7 @@ export function clampAmount(goal: Goal, amount: number): number {
   return Math.min(max, Math.max(min, Math.round(amount)));
 }
 
-export function bankOriginationFee(goal: Goal, market: Market, amount: number): number {
+function bankOriginationFee(goal: Goal, market: Market, amount: number): number {
   return Math.round(amount * regionProfile(market).bankFeeRate[goal]);
 }
 
@@ -117,14 +117,14 @@ export function buildNegotiationEmail(input: QuizInput, audit: Audit, fees: Scan
     : '- No avoidable fees found in the offer.';
   const rateLine = audit.alreadyCompetitive
     ? `Your ${audit.bankApr.toFixed(2)}% ${term} is already competitive, so I would like to focus on fees.`
-    : `I have a written option at ${audit.best.apr.toFixed(2)}% ${term} with ${money(audit.best.originationFee)} in ${feeTerm(market)}s, compared with your offer of ${audit.bankApr.toFixed(2)}%. Over the life of the loan that difference is about ${money(audit.lifetimeSavings)}.`;
+    : `For a loan like mine I am seeing rates around ${audit.best.apr.toFixed(2)}% ${term} with ${money(audit.best.originationFee)} in ${feeTerm(market)}s, compared with your offer of ${audit.bankApr.toFixed(2)}%. Over the life of the loan that difference is about ${money(audit.lifetimeSavings)}.`;
 
   return [
     `Subject: Request to review my ${money(input.amount)} ${goal} offer`,
     '',
     'Hello,',
     '',
-    `Thank you for the ${goal} offer for ${money(input.amount)}. Before I sign, I have compared it with other lenders in ${placeName(market)}.`,
+    `Thank you for the ${goal} offer for ${money(input.amount)}. Before I sign, I am comparing it with other lenders in ${placeName(market)}.`,
     '',
     rateLine,
     '',
