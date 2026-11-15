@@ -1,7 +1,7 @@
 import { Check, X } from 'lucide-react';
 
 const ROWS: { broker: string; analyst: string }[] = [
-  { broker: 'Biased (gets paid by banks)', analyst: '100% Unbiased' },
+  { broker: 'Often paid by the lender', analyst: '100% Unbiased' },
   { broker: 'Hidden origination fees', analyst: 'Zero hidden commissions' },
   { broker: 'Endless spam calls', analyst: 'Total privacy (no calls)' },
   { broker: 'Takes days to reply', analyst: 'Instant data-driven analysis' },
