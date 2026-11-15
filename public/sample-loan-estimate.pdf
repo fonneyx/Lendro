@@ -9,7 +9,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>
 endobj
 4 0 obj
-<< /Length 2587 >>
+<< /Length 2584 >>
 stream
 BT /F2 18 Tf 56 724 Td (LOAN ESTIMATE) Tj ET
 BT /F1 9 Tf 56 707 Td (SAMPLE DOCUMENT - fictional lender and borrower, for product testing only) Tj ET
@@ -38,7 +38,7 @@ BT /F1 10 Tf 56 270 Td (   Courier and wire fee                                 
 BT /F2 11 Tf 56 251 Td (E. Taxes and Other Government Fees                      $186) Tj ET
 BT /F1 10 Tf 56 233 Td (   Recording fees                                        $186) Tj ET
 BT /F2 11 Tf 56 196 Td (Total Loan Costs \(A + B + C\)                            $9,908) Tj ET
-BT /F1 9 Tf 56 161 Td (This sample is provided to test the RateScout fee scanner. It is not an offer of credit.) Tj ET
+BT /F1 9 Tf 56 161 Td (This sample is provided to test the Lendro fee scanner. It is not an offer of credit.) Tj ET
 endstream
 endobj
 5 0 obj
@@ -54,10 +54,10 @@ xref
 0000000058 00000 n 
 0000000115 00000 n 
 0000000251 00000 n 
-0000002890 00000 n 
-0000002960 00000 n 
+0000002887 00000 n 
+0000002957 00000 n 
 trailer
 << /Size 7 /Root 1 0 R >>
 startxref
-3035
+3032
 %%EOF

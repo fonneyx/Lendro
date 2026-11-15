@@ -1,16 +1,16 @@
-# RateScout — team guide
+# Lendro — team guide
 
 This file is the single source of truth for the MVP build. Read it fully before writing code. If something here is unclear, ask in the team chat instead of guessing — do not change the scope.
 
 ## 1. What we are building
 
-RateScout is a US-focused web app for working adults aged 25–45. A user answers a 4-step quiz (state, loan goal, amount, credit tier, optional bank offer) and we show how much they overpay by taking the first offer from their own bank (the "Single-Lender Trap"). We compare their bank against simulated lender profiles and show savings, then walk them through a free-trial paywall into a dashboard.
+Lendro is a US-focused web app for working adults aged 25–45. A user answers a 4-step quiz (state, loan goal, amount, credit tier, optional bank offer) and we show how much they overpay by taking the first offer from their own bank (the "Single-Lender Trap"). We compare their bank against simulated lender profiles and show savings, then walk them through a free-trial paywall into a dashboard.
 
 Hard rule: **no hardcoded output numbers.** Every APR, monthly payment, fee and savings figure on screen is calculated from the user's inputs by the functions in `src/lib/finance.ts`.
 
 Lender profiles are simulated on purpose. Use fictional but realistic names (for example "Lone Star Federal Credit Union", "Harbor Online Lending"). Do not attach made-up rates to real lender brands.
 
-RateScout is presented only as a product. Internal planning notes never go into the repo or the site (code, comments, UI text, README, commits, PRs, file names). They stay on each person's machine (see section 10).
+Lendro is presented only as a product. Internal planning notes never go into the repo or the site (code, comments, UI text, README, commits, PRs, file names). They stay on each person's machine (see section 10).
 
 ## 2. Scope (frozen)
 
@@ -87,7 +87,7 @@ interface QuizInput {
 }
 ```
 
-The context exposes `view`, `setView`, `input`, `setInput` (partial update). The dashboard edits `amount` and `bankApr` through the same `setInput`, so every screen recalculates from one source.
+The context exposes `view`, `setView`, `input`, `setInput` (partial update), and `tab`, `setTab` for the dashboard tab (`compare`, `emails`, `plan`). The dashboard edits `amount` and `bankApr` through the same `setInput`, so every screen recalculates from one source.
 
 ### Finance API (`src/lib/finance.ts`)
 
@@ -158,7 +158,7 @@ interface SavedAudit {
 }
 
 export function planSteps(goal: Goal): { id: string; title: string; detail: string }[];
-export function loadSaved(): SavedAudit | null;      // localStorage key "ratescout:v1", try/catch, null on any error
+export function loadSaved(): SavedAudit | null;      // localStorage key "lendro:v1", try/catch, null on any error
 export function saveAudit(s: SavedAudit): void;
 ```
 
@@ -190,7 +190,7 @@ body: { pdfBase64: string, input: QuizInput }
 
 ## 6. Screen copy (use these strings exactly)
 
-Navbar: logo "RateScout", trust badge "No SSN Required • Zero Credit Impact".
+Navbar: logo "Lendro", trust badge "No SSN Required • Zero Credit Impact".
 
 Landing
 - Headline: "One bank only cares about its own profit. Let AI check 100+ US loan programs for you in 60 seconds"
@@ -222,12 +222,12 @@ Dashboard
 - Tab 1 "AI Comparator & PDF Scanner" (default): editable amount and bank APR at the top; table "Your Primary Bank vs. Top 5 Alternatives" (APR, origination fee, monthly payment, lifetime interest saved); PDF drop zone plus "Test with Sample Bank PDF" button; flagged fees; copy button for the negotiation email
 - Tab 2 "Automated Day-2 Retention Emails Preview":
   - Value alert, subject "Rate Drop Alert: One of your matched credit unions in [State] just cut APR by 0.25%"
-  - Transparency email, subject "Heads up: Your RateScout 3-day free trial ends tomorrow", states the $29/mo renewal date and a 1-click cancel link
+  - Transparency email, subject "Heads up: Your Lendro 3-day free trial ends tomorrow", states the $29/mo renewal date and a 1-click cancel link
 - Tab 3 "My Loan Plan": personal checklist with progress, Rate Watch card, labeled demo control (see section 5)
 
 Every lender list is labeled "Sample lender profiles". Every sample input is labeled "Sample data". Hide any button that does not work.
 
-Footer (every view): "RateScout is an AI-powered educational and analytical tool, not a licensed mortgage broker, lender, or registered financial advisor. All rates, fees, and savings figures shown are dynamic MVP estimates calculated from user inputs for educational and informational purposes only."
+Footer (every view): "Lendro is an AI-powered educational and analytical tool, not a licensed mortgage broker, lender, or registered financial advisor. All rates, fees, and savings figures shown are dynamic MVP estimates calculated from user inputs for educational and informational purposes only."
 
 Look: white and slate surfaces, deep navy text, emerald for savings, amber or red for overpayment warnings. Details in `DESIGN.md`.
 
@@ -255,8 +255,8 @@ Look: white and slate surfaces, deep navy text, emerald for savings, amber or re
 ## 9. Setup per person
 
 ```bash
-git clone https://github.com/fonneyx/Loaney.git
-cd Loaney
+git clone https://github.com/fonneyx/Lendro.git
+cd Lendro
 npm install
 npm run dev
 ```
