@@ -1,8 +1,10 @@
+import { useMemo } from 'react';
 import { ArrowLeft, Lock } from 'lucide-react';
 import Shell from '../components/layout/Shell';
 import Button from '../components/ui/Button';
 import { cx } from '../lib/cx';
-import { formatMoney } from '../lib/format';
+import { computeAudit } from '../lib/finance';
+import { formatMoney, formatMoneyCents } from '../lib/format';
 import { regionProfile } from '../lib/market';
 import { useApp } from '../state/AppContext';
 
@@ -15,6 +17,7 @@ export default function Trial() {
   const zero = formatMoney(0, input.market);
   const price = `${formatMoney(regionProfile(input.market).monthlyPrice, input.market)}/mo`;
   const activate = () => setView('dashboard');
+  const audit = useMemo(() => computeAudit(input), [input]);
 
   const steps = [
     { when: 'Today', date: shortDate(0), price: zero, detail: 'Full lender comparison, fee scanner and negotiation email.' },
@@ -37,6 +40,22 @@ export default function Trial() {
         <h1 className="mt-8 text-4xl leading-[1.05] font-extrabold tracking-tight text-slate-900 sm:text-5xl">
           Don't sign a loan contract blindfolded. Unlock the entire market for {zero}.
         </h1>
+
+        <p
+          className={cx(
+            'tnum mt-6 rounded-2xl p-4 text-base',
+            audit.alreadyCompetitive ? 'bg-slate-100 text-slate-700' : 'bg-emerald-50 text-emerald-800',
+          )}
+        >
+          {audit.alreadyCompetitive ? (
+            'Your rate is already competitive. Pro checks your fees and watches the market for you.'
+          ) : (
+            <>
+              Your audit found <strong>{formatMoneyCents(audit.monthlyDiff, input.market)} a month</strong> you could keep.
+              Pro costs {price}.
+            </>
+          )}
+        </p>
 
         <ol className="mt-10 grid gap-0 sm:grid-cols-3">
           {steps.map((s, i) => (
