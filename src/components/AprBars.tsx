@@ -30,12 +30,12 @@ function Bar({ label, apr, max, tone }: { label: string; apr: number; max: numbe
   );
 }
 
-export default function AprBars({ audit }: { audit: Audit }) {
+export default function AprBars({ audit, term }: { audit: Audit; term: string }) {
   const max = Math.max(audit.bankApr, audit.best.apr);
   return (
     <div className="space-y-5">
-      <Bar label={`${audit.bankLabel} APR`} apr={audit.bankApr} max={max} tone={audit.alreadyCompetitive ? 'neutral' : 'bank'} />
-      <Bar label="Best matched lender APR" apr={audit.best.apr} max={max} tone={audit.alreadyCompetitive ? 'neutral' : 'best'} />
+      <Bar label={`${audit.bankLabel} ${term}`} apr={audit.bankApr} max={max} tone={audit.alreadyCompetitive ? 'neutral' : 'bank'} />
+      <Bar label={`Best matched lender ${term}`} apr={audit.best.apr} max={max} tone={audit.alreadyCompetitive ? 'neutral' : 'best'} />
     </div>
   );
 }

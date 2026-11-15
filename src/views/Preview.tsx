@@ -5,9 +5,9 @@ import Shell from '../components/layout/Shell';
 import Button from '../components/ui/Button';
 import { SampleLabel } from '../components/ui/primitives';
 import { buildNegotiationEmail, computeAudit, simulatedLoanEstimateFees } from '../lib/finance';
-import { formatPct, formatUSD, formatUSDCents } from '../lib/format';
+import { formatMoney, formatMoneyCents, formatPct } from '../lib/format';
+import { documentName, feeTerm, goalNoun, marketName, placeName, rateTerm } from '../lib/market';
 import { useCountUp } from '../hooks/useCountUp';
-import { GOAL_LABELS, STATE_NAMES } from '../lib/types';
 import { useApp } from '../state/AppContext';
 
 export default function Preview() {
@@ -19,7 +19,11 @@ export default function Preview() {
     [input, audit],
   );
   const zeroFee = audit.tableLenders.filter((l) => l.originationFee === 0).length;
-  const goal = GOAL_LABELS[input.goal].toLowerCase();
+  const goal = goalNoun(input.goal, input.market);
+  const place = marketName(input.market);
+  const term = rateTerm(input.market);
+  const money = (n: number) => formatMoney(n, input.market);
+  const cents = (n: number) => formatMoneyCents(n, input.market);
 
   return (
     <Shell>
@@ -33,33 +37,33 @@ export default function Preview() {
         ) : (
           <h1 className="mt-3 text-4xl leading-[1.05] font-extrabold tracking-tight text-slate-900 sm:text-6xl">
             You could save up to{' '}
-            <span className="tnum block text-6xl text-emerald-600 sm:text-8xl">{formatUSD(Math.round(savings))}</span>
+            <span className="tnum block text-6xl text-emerald-600 sm:text-8xl">{money(Math.round(savings))}</span>
           </h1>
         )}
         <p className="mt-4 max-w-2xl text-lg text-slate-500">
           {audit.alreadyCompetitive
-            ? `Your ${formatPct(audit.bankApr)} APR beats every matched lender. The savings left are in the fees on your Loan Estimate.`
-            : `in interest and fees over the life of your ${formatUSD(input.amount)} ${goal} in ${STATE_NAMES[input.state]}, compared with ${audit.bankLabel === 'Your Bank' ? 'your bank offer' : `the ${STATE_NAMES[input.state]} baseline`}.`}
+            ? `Your ${formatPct(audit.bankApr)} ${term} beats every matched lender. The savings left are in the fees on your ${documentName(input.goal, input.market)}.`
+            : `in interest and fees over the life of your ${money(input.amount)} ${goal} in ${placeName(input.market)}, compared with ${audit.bankLabel === 'Your Bank' ? 'your bank offer' : `the ${place} baseline`}.`}
         </p>
 
         <div className="mt-10 grid gap-5 md:grid-cols-[1.4fr_1fr]">
           <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:p-8">
-            <AprBars audit={audit} />
+            <AprBars audit={audit} term={term} />
           </div>
           <div className="flex flex-col justify-between gap-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:p-8">
             <div>
               <p className="text-sm font-medium text-slate-500">Monthly payment difference</p>
               <p className="tnum mt-1 text-4xl font-extrabold tracking-tight text-slate-900">
-                {formatUSDCents(audit.monthlyDiff)}
+                {cents(audit.monthlyDiff)}
               </p>
               <p className="tnum mt-1 text-sm text-slate-500">
-                {formatUSDCents(audit.bankMonthly)} now, {formatUSDCents(audit.best.monthly)} with the best match
+                {cents(audit.bankMonthly)} now, {cents(audit.best.monthly)} with the best match
               </p>
             </div>
             {zeroFee > 0 && (
               <p className="flex items-start gap-2 rounded-xl bg-emerald-50 p-3 text-sm font-medium text-emerald-800">
                 <BadgeCheck className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-                {zeroFee} programs found where you qualify with zero hidden origination fees
+                {zeroFee} programs found where you qualify with zero hidden {feeTerm(input.market)}s
               </p>
             )}
           </div>
@@ -77,8 +81,8 @@ export default function Preview() {
                   <span className="font-semibold text-slate-900">{l.name}</span>
                   <span className="flex gap-6 text-slate-600">
                     <span>{formatPct(l.apr)}</span>
-                    <span className="hidden sm:inline">{formatUSD(l.originationFee)} fee</span>
-                    <span className="font-semibold text-emerald-700">{formatUSD(l.lifetimeSavings)}</span>
+                    <span className="hidden sm:inline">{money(l.originationFee)} fee</span>
+                    <span className="font-semibold text-emerald-700">{money(l.lifetimeSavings)}</span>
                   </span>
                 </li>
               ))}
@@ -87,7 +91,7 @@ export default function Preview() {
               <div className="rounded-xl bg-slate-50 p-4">
                 <p className="text-sm font-medium text-slate-500">Avoidable fees on a typical estimate</p>
                 <p className="tnum mt-1 text-2xl font-extrabold tracking-tight text-amber-700">
-                  {formatUSD(audit.bankFeesFlaggedEstimate)}
+                  {money(audit.bankFeesFlaggedEstimate)}
                 </p>
               </div>
               <div className="rounded-xl bg-slate-50 p-4">

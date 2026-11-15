@@ -9,10 +9,12 @@ import {
   simulatedLoanEstimateFees,
   totalInterest,
 } from './finance.js';
+import { formatMoney } from './format.js';
+import { planSteps } from './plan.js';
 import type { QuizInput } from './types.js';
 import { parseQuizInput, parseScannedFees } from './validate.js';
 
-const base: QuizInput = { state: 'TX', goal: 'mortgage', amount: 350_000, tier: 'excellent', bankApr: 6.85 };
+const base: QuizInput = { market: 'us-tx', goal: 'mortgage', amount: 350_000, tier: 'excellent', bankApr: 6.85 };
 
 describe('monthlyPayment', () => {
   it('matches the standard amortization formula', () => {
@@ -38,13 +40,13 @@ describe('totalInterest', () => {
 
 describe('baselineApr', () => {
   it('rises as the credit tier drops', () => {
-    const tiers = (['excellent', 'good', 'fair', 'building'] as const).map((t) => baselineApr('auto', 'CA', t));
+    const tiers = (['excellent', 'good', 'fair', 'building'] as const).map((t) => baselineApr('auto', 'us-ca', t));
     expect(tiers).toEqual([...tiers].sort((a, b) => a - b));
     expect(new Set(tiers).size).toBe(4);
   });
 
   it('applies the state adjustment', () => {
-    expect(baselineApr('mortgage', 'NY', 'excellent')).toBeGreaterThan(baselineApr('mortgage', 'CA', 'excellent'));
+    expect(baselineApr('mortgage', 'us-ny', 'excellent')).toBeGreaterThan(baselineApr('mortgage', 'us-ca', 'excellent'));
   });
 });
 
@@ -54,14 +56,14 @@ describe('computeAudit', () => {
     expect(computeAudit({ ...base, amount: 500_000 }).lifetimeSavings).not.toBe(a.lifetimeSavings);
     expect(computeAudit({ ...base, bankApr: 7.5 }).lifetimeSavings).not.toBe(a.lifetimeSavings);
     expect(computeAudit({ ...base, tier: 'fair' }).best.apr).not.toBe(a.best.apr);
-    expect(computeAudit({ ...base, state: 'IL' }).best.apr).not.toBe(a.best.apr);
+    expect(computeAudit({ ...base, market: 'us-il' }).best.apr).not.toBe(a.best.apr);
     expect(computeAudit({ ...base, goal: 'auto', amount: 32_000 }).best.apr).not.toBe(a.best.apr);
   });
 
   it('uses the state baseline when there is no bank offer', () => {
     const audit = computeAudit({ ...base, bankApr: null });
     expect(audit.bankLabel).toBe('Texas Baseline');
-    expect(audit.bankApr).toBe(baselineApr('mortgage', 'TX', 'excellent'));
+    expect(audit.bankApr).toBe(baselineApr('mortgage', 'us-tx', 'excellent'));
     expect(audit.lifetimeSavings).toBeGreaterThan(0);
   });
 
@@ -72,19 +74,13 @@ describe('computeAudit', () => {
     expect(audit.monthlyDiff).toBe(0);
   });
 
-  it('returns 4 preview lenders and 5 table lenders, best first, top 4 fee-free', () => {
+  it('returns 5 table lenders, best first, top 4 fee-free', () => {
     const audit = computeAudit(base);
-    expect(audit.previewLenders).toHaveLength(4);
     expect(audit.tableLenders).toHaveLength(5);
     expect(audit.best).toEqual(audit.tableLenders[0]);
-    expect(audit.previewLenders.every((l) => l.originationFee === 0)).toBe(true);
+    expect(audit.tableLenders.slice(0, 4).every((l) => l.originationFee === 0)).toBe(true);
     const aprs = audit.tableLenders.map((l) => l.apr);
     expect(aprs).toEqual([...aprs].sort((x, y) => x - y));
-  });
-
-  it('caps mortgage assistance by state', () => {
-    expect(computeAudit({ ...base, amount: 1_500_000 }).assistanceEstimate).toBe(10_000);
-    expect(computeAudit({ ...base, amount: 100_000 }).assistanceEstimate).toBe(3_000);
   });
 
   it('grows savings when the market drops (Rate Watch)', () => {
@@ -96,7 +92,7 @@ describe('computeAudit', () => {
 
 describe('matchLenders', () => {
   it('never returns a negative APR', () => {
-    const quotes = matchLenders({ state: 'CA', goal: 'bnpl', amount: 500, tier: 'excellent', bankApr: null });
+    const quotes = matchLenders({ market: 'us-ca', goal: 'bnpl', amount: 500, tier: 'excellent', bankApr: null });
     expect(quotes.every((q) => q.apr >= 0)).toBe(true);
   });
 });
@@ -124,7 +120,7 @@ describe('validation', () => {
   });
 
   it('rejects bad inputs', () => {
-    expect(parseQuizInput({ ...base, state: 'ZZ' })).toBeNull();
+    expect(parseQuizInput({ ...base, market: 'zz' })).toBeNull();
     expect(parseQuizInput({ ...base, bankApr: -1 })).toBeNull();
     expect(parseQuizInput(null)).toBeNull();
   });
@@ -140,5 +136,46 @@ describe('validation', () => {
       { name: 'Origination', amount: 3500, flag: 'negotiable', note: 'x' },
       { name: 'Unknown flag', amount: 50, flag: 'standard', note: '' },
     ]);
+  });
+});
+
+describe('markets', () => {
+  const de: QuizInput = { market: 'de', goal: 'mortgage', amount: 300_000, tier: 'good', bankApr: 4.4 };
+  const uk: QuizInput = { market: 'uk', goal: 'mortgage', amount: 275_000, tier: 'good', bankApr: 5.6 };
+
+  it('formats money in the local currency', () => {
+    expect(formatMoney(1234, 'us-tx')).toBe('$1,234');
+    expect(formatMoney(1234, 'de')).toBe('\u20ac1,234');
+    expect(formatMoney(1234, 'uk')).toBe('\u00a31,234');
+  });
+
+  it('prices each region from its own rate table', () => {
+    const us = baselineApr('mortgage', 'us-il', 'good');
+    const eu = baselineApr('mortgage', 'it', 'good');
+    const gb = baselineApr('mortgage', 'uk', 'good');
+    expect(eu).toBeLessThan(gb);
+    expect(gb).toBeLessThan(us);
+    expect(baselineApr('mortgage', 'ie', 'good')).toBeGreaterThan(baselineApr('mortgage', 'es', 'good'));
+  });
+
+  it('matches regional lenders and writes the email in local terms', () => {
+    const audit = computeAudit(de);
+    expect(audit.best.name).toBe('Lindenau Cooperative Bank');
+    const email = buildNegotiationEmail(de, audit, simulatedLoanEstimateFees(de));
+    expect(email).toContain('\u20ac300,000');
+    expect(email).toContain('APRC');
+    expect(email).toContain('ESIS');
+    expect(email).toContain('Germany');
+    expect(email).not.toContain('$');
+  });
+
+  it('uses UK lenders, fees and plan steps for the United Kingdom', () => {
+    expect(computeAudit(uk).best.name).toBe('Northwold Building Society');
+    expect(simulatedLoanEstimateFees(uk).map((f) => f.name)).toContain('Booking fee');
+    expect(planSteps('mortgage', 'uk').map((s) => s.id)).toContain('m-erc');
+  });
+
+  it('reads saves made before markets existed', () => {
+    expect(parseQuizInput({ state: 'NY', goal: 'auto', amount: 20_000, tier: 'fair', bankApr: null })?.market).toBe('us-ny');
   });
 });

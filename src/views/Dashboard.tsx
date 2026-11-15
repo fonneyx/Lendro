@@ -11,9 +11,10 @@ import type { SavedAudit } from '../lib/plan';
 import { scanDocument } from '../lib/scan';
 import type { QuizInput } from '../lib/types';
 import { useApp } from '../state/AppContext';
+import type { DashboardPane } from '../state/AppContext';
+import { documentName } from '../lib/market';
 
-type Pane = 'analyst' | 'plan' | 'rates';
-const PANES: { id: Pane; label: string }[] = [
+const PANES: { id: DashboardPane; label: string }[] = [
   { id: 'analyst', label: 'Analyst' },
   { id: 'plan', label: 'My plan' },
   { id: 'rates', label: 'Rates' },
@@ -23,7 +24,7 @@ const DEMO_SHIFT = -0.25;
 const SIDE =
   'mx-auto w-full max-w-2xl xl:sticky xl:top-24 xl:-m-1 xl:block xl:max-h-[calc(100vh-7rem)] xl:max-w-none xl:self-start xl:overflow-y-auto xl:p-1';
 
-const sameLoan = (a: QuizInput, b: QuizInput) => a.goal === b.goal && a.state === b.state && a.tier === b.tier;
+const sameLoan = (a: QuizInput, b: QuizInput) => a.goal === b.goal && a.market === b.market && a.tier === b.tier;
 
 function initialSaved(input: QuizInput): SavedAudit {
   const existing = loadSaved();
@@ -31,11 +32,10 @@ function initialSaved(input: QuizInput): SavedAudit {
 }
 
 export default function Dashboard() {
-  const { input, setInput } = useApp();
+  const { input, setInput, pane, setPane } = useApp();
   const [saved, setSaved] = useState<SavedAudit>(() => initialSaved(input));
   const [scans, setScans] = useState<Scan[]>([]);
   const [emailOpen, setEmailOpen] = useState(false);
-  const [pane, setPane] = useState<Pane>('analyst');
   const nextId = useRef(1);
 
   useEffect(() => {
@@ -59,7 +59,7 @@ export default function Dashboard() {
     async (file?: File) => {
       const id = nextId.current++;
       setPane('analyst');
-      setScans((prev) => [...prev, { id, name: file ? file.name : 'Sample Bank Loan Estimate.pdf', sample: !file, result: null }]);
+      setScans((prev) => [...prev, { id, name: file ? file.name : `Sample bank ${documentName(input.goal, input.market)}.pdf`, sample: !file, result: null }]);
       const result = await scanDocument(input, file);
       setScans((prev) => prev.map((s) => (s.id === id ? { ...s, result } : s)));
     },

@@ -1,0 +1,54 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 1646 >>
+stream
+BT /F2 16 Tf 56 726 Td (MORTGAGE ILLUSTRATION \(ESIS\)) Tj ET
+BT /F1 9 Tf 56 709 Td (SAMPLE DOCUMENT - fictional lender and borrower, for product testing only) Tj ET
+BT /F1 10 Tf 56 673 Td (Lender: Kingsmere Bank plc \(sample\)        Date issued: 03/11/2026) Tj ET
+BT /F1 10 Tf 56 655 Td (Borrower: Sam Sample, Leeds, United Kingdom) Tj ET
+BT /F1 10 Tf 56 637 Td (Purpose: House purchase   Term: 25 years   Product: 5-year fixed rate) Tj ET
+BT /F1 10 Tf 56 619 Td (Loan amount: £275,000   Initial rate: 4.79%   APRC: 5.62%   Monthly payment: £1,574.16) Tj ET
+BT /F2 12 Tf 56 581 Td (4. FEES AND CHARGES) Tj ET
+BT /F2 11 Tf 56 562 Td (Fees payable to the lender) Tj ET
+BT /F1 10 Tf 56 544 Td (   Product fee                                           £1,499) Tj ET
+BT /F1 10 Tf 56 526 Td (   Booking fee                                           £199) Tj ET
+BT /F1 10 Tf 56 508 Td (   Mortgage account fee                                  £125) Tj ET
+BT /F1 10 Tf 56 490 Td (   Valuation fee                                         £395) Tj ET
+BT /F2 11 Tf 56 471 Td (Fees payable to third parties) Tj ET
+BT /F1 10 Tf 56 453 Td (   Broker fee                                            £699) Tj ET
+BT /F1 10 Tf 56 435 Td (   Legal fees \(estimate\)                                 £1,100) Tj ET
+BT /F2 11 Tf 56 416 Td (Early repayment charges) Tj ET
+BT /F1 10 Tf 56 398 Td (   5% in year 1, falling by 1% a year to 1% in year 5) Tj ET
+BT /F2 11 Tf 56 361 Td (Total amount to repay                                    £475,164) Tj ET
+BT /F1 9 Tf 56 326 Td (This sample is provided to test the Lendro fee scanner. It is not an offer of credit.) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000001949 00000 n 
+0000002046 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+2148
+%%EOF

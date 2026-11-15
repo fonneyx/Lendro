@@ -2,11 +2,11 @@ import { Check, FileText } from 'lucide-react';
 import type { Scan } from './Thread';
 import { Panel, ProgressBar } from '../ui/primitives';
 import { flaggedTotal } from '../../lib/finance';
-import { formatUSD } from '../../lib/format';
+import { formatMoney } from '../../lib/format';
+import { documentName, goalLabel, marketName, tierLabel } from '../../lib/market';
 import { cx } from '../../lib/cx';
 import { planSteps } from '../../lib/plan';
 import type { SavedAudit } from '../../lib/plan';
-import { GOAL_LABELS, STATE_NAMES, TIER_LABELS } from '../../lib/types';
 
 interface Props {
   saved: SavedAudit;
@@ -16,7 +16,7 @@ interface Props {
 }
 
 export default function Sidebar({ saved, scans, onToggleStep, onOpenScan }: Props) {
-  const steps = planSteps(saved.input.goal);
+  const steps = planSteps(saved.input.goal, saved.input.market);
   const done = steps.filter((s) => saved.completedSteps.includes(s.id)).length;
   const since = new Date(saved.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
@@ -24,11 +24,11 @@ export default function Sidebar({ saved, scans, onToggleStep, onOpenScan }: Prop
     <div className="space-y-4">
       <Panel>
         <h2 className="text-sm font-medium text-slate-500">Saved audit</h2>
-        <p className="tnum mt-1 text-2xl font-extrabold tracking-tight text-slate-900">{formatUSD(saved.input.amount)}</p>
+        <p className="tnum mt-1 text-2xl font-extrabold tracking-tight text-slate-900">{formatMoney(saved.input.amount, saved.input.market)}</p>
         <p className="mt-1 text-sm text-slate-600">
-          {GOAL_LABELS[saved.input.goal]}, {STATE_NAMES[saved.input.state]}
+          {goalLabel(saved.input.goal, saved.input.market)}, {marketName(saved.input.market)}
         </p>
-        <p className="text-sm text-slate-600">Credit {TIER_LABELS[saved.input.tier]}</p>
+        <p className="text-sm text-slate-600">Credit {tierLabel(saved.input.tier, saved.input.market)}</p>
         <p className="mt-3 text-xs text-slate-500">Saved on this device since {since}</p>
       </Panel>
 
@@ -77,7 +77,7 @@ export default function Sidebar({ saved, scans, onToggleStep, onOpenScan }: Prop
         <h2 className="text-lg font-bold tracking-tight text-slate-900">Scans this session</h2>
         {scans.length === 0 ? (
           <p className="mt-2 text-sm text-slate-500">
-            Nothing scanned yet. Drop a Loan Estimate into the analyst to see its fees here.
+            Nothing scanned yet. Drop your {documentName(saved.input.goal, saved.input.market)} into the analyst to see its fees here.
           </p>
         ) : (
           <ul className="mt-3 space-y-1">
@@ -91,7 +91,7 @@ export default function Sidebar({ saved, scans, onToggleStep, onOpenScan }: Prop
                   <FileText className="size-4 shrink-0 text-slate-400" aria-hidden="true" />
                   <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-900">{scan.name}</span>
                   <span className="tnum shrink-0 text-sm font-semibold text-amber-700">
-                    {scan.result ? formatUSD(flaggedTotal(scan.result.fees)) : 'Reading'}
+                    {scan.result ? formatMoney(flaggedTotal(scan.result.fees), saved.input.market) : 'Reading'}
                   </span>
                 </button>
               </li>

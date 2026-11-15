@@ -2,6 +2,8 @@ import { ArrowLeft, Lock } from 'lucide-react';
 import Shell from '../components/layout/Shell';
 import Button from '../components/ui/Button';
 import { cx } from '../lib/cx';
+import { formatMoney } from '../lib/format';
+import { regionProfile } from '../lib/market';
 import { useApp } from '../state/AppContext';
 
 const DAY_MS = 86_400_000;
@@ -9,13 +11,15 @@ const shortDate = (offsetDays: number) =>
   new Date(Date.now() + offsetDays * DAY_MS).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
 export default function Trial() {
-  const { setView } = useApp();
+  const { input, setView } = useApp();
+  const zero = formatMoney(0, input.market);
+  const price = `${formatMoney(regionProfile(input.market).monthlyPrice, input.market)}/mo`;
   const activate = () => setView('dashboard');
 
   const steps = [
-    { when: 'Today', date: shortDate(0), price: '$0', detail: 'Full lender comparison, fee scanner and negotiation email.' },
+    { when: 'Today', date: shortDate(0), price: zero, detail: 'Full lender comparison, fee scanner and negotiation email.' },
     { when: 'Day 2', date: shortDate(1), price: 'Reminder', detail: 'An email 24 hours before your trial ends.' },
-    { when: 'Day 3', date: shortDate(2), price: '$29/mo', detail: 'Cancel anytime in 1 click inside settings.' },
+    { when: 'Day 3', date: shortDate(2), price, detail: 'Cancel anytime in 1 click inside settings.' },
   ];
 
   return (
@@ -31,7 +35,7 @@ export default function Trial() {
         </button>
 
         <h1 className="mt-8 text-4xl leading-[1.05] font-extrabold tracking-tight text-slate-900 sm:text-5xl">
-          Don't sign a loan contract blindfolded. Unlock the entire market for $0.
+          Don't sign a loan contract blindfolded. Unlock the entire market for {zero}.
         </h1>
 
         <ol className="mt-10 grid gap-0 sm:grid-cols-3">

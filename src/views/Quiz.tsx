@@ -5,10 +5,11 @@ import Button from '../components/ui/Button';
 import ChoiceCard from '../components/ui/ChoiceCard';
 import { ProgressBar } from '../components/ui/primitives';
 import { AMOUNT_RANGE, baselineApr, clampAmount } from '../lib/finance';
-import { formatPct, formatUSD } from '../lib/format';
+import { currencySymbol, formatMoney, formatPct } from '../lib/format';
+import { documentName, goalLabel, goalNoun, isUs, marketName, placeName, rateTerm, regionProfile } from '../lib/market';
 import { cx } from '../lib/cx';
-import { CREDIT_TIERS, GOALS, GOAL_LABELS, STATE_NAMES, TIER_LABELS, US_STATES } from '../lib/types';
-import type { Goal, UsState } from '../lib/types';
+import { CREDIT_TIERS, EUROPE_MARKETS, GOALS, US_MARKETS } from '../lib/types';
+import type { Goal, Market } from '../lib/types';
 import { useApp } from '../state/AppContext';
 
 const TOTAL = 4;
@@ -59,7 +60,7 @@ function AmountStep({ onNext }: { onNext: () => void }) {
         Loan amount
       </label>
       <div className="mt-2 flex items-center gap-1 border-b-2 border-slate-200 pb-2 focus-within:border-blue-600">
-        <span className="text-4xl font-extrabold tracking-tight text-slate-400 sm:text-5xl">$</span>
+        <span className="text-4xl font-extrabold tracking-tight text-slate-400 sm:text-5xl">{currencySymbol(input.market)}</span>
         <input
           id="amount"
           inputMode="numeric"
@@ -85,8 +86,8 @@ function AmountStep({ onNext }: { onNext: () => void }) {
         className="mt-8 w-full"
       />
       <div className="tnum mt-2 flex justify-between text-xs text-slate-500">
-        <span>{formatUSD(range.min)}</span>
-        <span>{formatUSD(range.max)}</span>
+        <span>{formatMoney(range.min, input.market)}</span>
+        <span>{formatMoney(range.max, input.market)}</span>
       </div>
       <Button size="lg" block className="mt-8" onClick={onNext}>
         Continue
@@ -102,7 +103,8 @@ function OfferStep({ onSubmit }: { onSubmit: () => void }) {
   const [text, setText] = useState(input.bankApr === null ? '' : String(input.bankApr));
   const apr = Number(text);
   const valid = text.trim() !== '' && Number.isFinite(apr) && apr > 0 && apr <= 60;
-  const baseline = baselineApr(input.goal, input.state, input.tier);
+  const baseline = baselineApr(input.goal, input.market, input.tier);
+  const term = rateTerm(input.market);
 
   return (
     <div className="space-y-4">
@@ -111,7 +113,7 @@ function OfferStep({ onSubmit }: { onSubmit: () => void }) {
         onSelect={() => setHasOffer(true)}
         lead={<FileText className="size-6" aria-hidden="true" />}
         title="Yes, I have an offer"
-        detail="Compare the APR your bank quoted against the market"
+        detail={`Compare the ${term} your bank quoted against the market`}
       />
       {hasOffer && (
         <form
@@ -124,7 +126,7 @@ function OfferStep({ onSubmit }: { onSubmit: () => void }) {
           }}
         >
           <label htmlFor="apr" className="text-sm font-medium text-slate-700">
-            APR on your bank offer
+            {term} on your bank offer
           </label>
           <div className="mt-2 flex items-center gap-3">
             <div className="flex h-14 flex-1 items-center rounded-xl bg-white px-4 ring-1 ring-slate-300 focus-within:ring-2 focus-within:ring-blue-600">
@@ -146,8 +148,8 @@ function OfferStep({ onSubmit }: { onSubmit: () => void }) {
           </div>
           <p id="apr-hint" className="mt-2 text-sm text-slate-500">
             {text.trim() !== '' && !valid
-              ? 'Enter the APR as a number between 0.1 and 60, for example 6.85.'
-              : 'It is the percentage on your Loan Estimate or offer letter.'}
+              ? `Enter the ${term} as a number between 0.1 and 60, for example ${baseline.toFixed(2)}.`
+              : `It is the percentage on your ${documentName(input.goal, input.market)} or offer letter.`}
           </p>
         </form>
       )}
@@ -159,7 +161,7 @@ function OfferStep({ onSubmit }: { onSubmit: () => void }) {
         }}
         lead={<Search className="size-6" aria-hidden="true" />}
         title="No, just exploring"
-        detail={`We will compare against the ${STATE_NAMES[input.state]} baseline of ${formatPct(baseline)}`}
+        detail={`We will compare against the ${marketName(input.market)} baseline of ${formatPct(baseline)}`}
       />
     </div>
   );
@@ -173,8 +175,8 @@ function Scanning() {
         <Sparkles className="size-8 animate-pulse" aria-hidden="true" />
       </span>
       <p className="mt-8 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
-        Comparing lender profiles in {STATE_NAMES[input.state]} for your {formatUSD(input.amount)}{' '}
-        {GOAL_LABELS[input.goal].toLowerCase()}
+        Comparing lender profiles in {placeName(input.market)} for your {formatMoney(input.amount, input.market)}{' '}
+        {goalNoun(input.goal, input.market)}
       </p>
       <div className="mt-8 h-2 w-full max-w-sm overflow-hidden rounded-full bg-slate-200">
         <div className="animate-sweep h-full origin-left rounded-full bg-blue-600" />
@@ -236,21 +238,30 @@ export default function Quiz() {
           <div className="mt-8 sm:mt-10">
             {step === 0 && (
               <div>
-                <label htmlFor="state" className="text-sm font-semibold text-slate-900">
-                  State
+                <label htmlFor="market" className="text-sm font-semibold text-slate-900">
+                  Location
                 </label>
                 <div className="relative mt-2">
                   <select
-                    id="state"
-                    value={input.state}
-                    onChange={(e) => setInput({ state: e.target.value as UsState })}
+                    id="market"
+                    value={input.market}
+                    onChange={(e) => setInput({ market: e.target.value as Market })}
                     className="h-14 w-full appearance-none rounded-2xl bg-white pr-12 pl-4 text-base font-medium text-slate-900 shadow-sm ring-1 ring-slate-300 transition duration-200 outline-none hover:ring-slate-400 focus-visible:ring-2 focus-visible:ring-blue-600"
                   >
-                    {US_STATES.map((s) => (
-                      <option key={s} value={s}>
-                        {STATE_NAMES[s]}
-                      </option>
-                    ))}
+                    <optgroup label="United States">
+                      {US_MARKETS.map((m) => (
+                        <option key={m} value={m}>
+                          {marketName(m)}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Europe">
+                      {EUROPE_MARKETS.map((m) => (
+                        <option key={m} value={m}>
+                          {marketName(m)}
+                        </option>
+                      ))}
+                    </optgroup>
                   </select>
                   <ChevronDown
                     className="pointer-events-none absolute top-1/2 right-4 size-5 -translate-y-1/2 text-slate-500"
@@ -276,7 +287,7 @@ export default function Quiz() {
                           )}
                         >
                           <Icon className={cx('size-6', selected ? 'text-blue-600' : 'text-slate-500')} aria-hidden="true" />
-                          <span className="text-base font-bold tracking-tight text-slate-900">{GOAL_LABELS[g]}</span>
+                          <span className="text-base font-bold tracking-tight text-slate-900">{goalLabel(g, input.market)}</span>
                         </button>
                       );
                     })}
@@ -290,21 +301,21 @@ export default function Quiz() {
               </div>
             )}
 
-            {step === 1 && <AmountStep key={input.goal} onNext={next} />}
+            {step === 1 && <AmountStep key={`${input.goal}-${input.market}`} onNext={next} />}
 
             {step === 2 && (
               <div className="grid gap-3 sm:grid-cols-2">
                 {CREDIT_TIERS.map((t, i) => {
-                  const label = TIER_LABELS[t];
-                  const cut = label.lastIndexOf(' ');
+                  const tier = regionProfile(input.market).tiers[t];
+                  const us = isUs(input.market);
                   return (
                     <ChoiceCard
                       key={t}
                       selected={input.tier === t}
                       onSelect={() => pick({ tier: t })}
                       lead={<TierBars level={CREDIT_TIERS.length - i} />}
-                      title={label.slice(0, cut)}
-                      detail={label.slice(cut + 1)}
+                      title={us ? tier.hint : tier.name}
+                      detail={us ? tier.name : tier.hint}
                     />
                   );
                 })}

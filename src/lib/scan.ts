@@ -1,11 +1,16 @@
 import { buildNegotiationEmail, computeAudit, flaggedTotal, simulatedLoanEstimateFees } from './finance';
-import { formatUSD } from './format';
-import { GOAL_LABELS } from './types';
-import type { QuizInput, ScanResult } from './types';
+import { formatMoney } from './format';
+import { goalNoun, regionOf } from './market';
+import type { Market, QuizInput, Region, ScanResult } from './types';
 
 const TIMEOUT_MS = 30_000;
 export const MAX_PDF_BYTES = 3_200_000;
-export const SAMPLE_PDF_URL = '/sample-loan-estimate.pdf';
+const SAMPLE_PDF: Record<Region, string> = {
+  us: '/sample-loan-estimate.pdf',
+  eu: '/sample-esis-eu.pdf',
+  uk: '/sample-esis-uk.pdf',
+};
+export const samplePdfUrl = (market: Market) => SAMPLE_PDF[regionOf(market)];
 
 export function simulatedScan(input: QuizInput): ScanResult {
   const fees = simulatedLoanEstimateFees(input);
@@ -13,7 +18,7 @@ export function simulatedScan(input: QuizInput): ScanResult {
   return {
     fees,
     totalFlagged,
-    summary: `Estimated fees for a typical ${formatUSD(input.amount)} ${GOAL_LABELS[input.goal].toLowerCase()}. ${formatUSD(totalFlagged)} of them are commonly reduced or removed.`,
+    summary: `Estimated fees for a typical ${formatMoney(input.amount, input.market)} ${goalNoun(input.goal, input.market)}. ${formatMoney(totalFlagged, input.market)} of them are commonly reduced or removed.`,
     emailScript: buildNegotiationEmail(input, computeAudit(input), fees),
     source: 'simulated',
   };
@@ -33,7 +38,7 @@ export async function scanDocument(input: QuizInput, file?: Blob): Promise<ScanR
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    const pdf: Blob = file ? file : await (await fetch(SAMPLE_PDF_URL, { signal: controller.signal })).blob();
+    const pdf: Blob = file ? file : await (await fetch(samplePdfUrl(input.market), { signal: controller.signal })).blob();
     if (pdf.size > MAX_PDF_BYTES) return simulatedScan(input);
     const res = await fetch('/api/scan', {
       method: 'POST',

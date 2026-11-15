@@ -5,10 +5,10 @@ import PdfDropzone from './PdfDropzone';
 import Button from '../ui/Button';
 import { SampleLabel } from '../ui/primitives';
 import { flaggedTotal } from '../../lib/finance';
-import { formatPct, formatUSD, formatUSDCents } from '../../lib/format';
+import { formatMoney, formatMoneyCents, formatPct } from '../../lib/format';
+import { documentName, feeTerm, goalNoun, marketName, mutualLabel, placeName, rateTerm } from '../../lib/market';
 import { cx } from '../../lib/cx';
-import { GOAL_LABELS, STATE_NAMES } from '../../lib/types';
-import type { Audit, FeeFlag, QuizInput, ScanResult } from '../../lib/types';
+import type { Audit, FeeFlag, Market, QuizInput, ScanResult } from '../../lib/types';
 
 export interface Scan {
   id: number;
@@ -56,7 +56,10 @@ const FLAG_STYLE: Record<FeeFlag, string> = {
 };
 const FLAG_LABEL: Record<FeeFlag, string> = { junk: 'Junk fee', negotiable: 'Negotiable', standard: 'Standard' };
 
-function ComparisonTable({ audit }: { audit: Audit }) {
+function ComparisonTable({ audit, market }: { audit: Audit; market: Market }) {
+  const money = (n: number) => formatMoney(n, market);
+  const cents = (n: number) => formatMoneyCents(n, market);
+  const fee = feeTerm(market);
   return (
     <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
       <div className="flex flex-wrap items-center justify-between gap-2 px-5 pt-5">
@@ -70,8 +73,8 @@ function ComparisonTable({ audit }: { audit: Audit }) {
           <thead className="text-xs text-slate-500">
             <tr>
               <th scope="col" className="px-5 py-2 font-medium">Lender</th>
-              <th scope="col" className="px-3 py-2 text-right font-medium">APR</th>
-              <th scope="col" className="px-3 py-2 text-right font-medium">Origination fee</th>
+              <th scope="col" className="px-3 py-2 text-right font-medium">{rateTerm(market)}</th>
+              <th scope="col" className="px-3 py-2 text-right font-medium">{fee[0].toUpperCase() + fee.slice(1)}</th>
               <th scope="col" className="px-3 py-2 text-right font-medium">Monthly</th>
               <th scope="col" className="px-5 py-2 text-right font-medium">Lifetime saved</th>
             </tr>
@@ -80,8 +83,8 @@ function ComparisonTable({ audit }: { audit: Audit }) {
             <tr className="border-t border-slate-100 bg-amber-50/60">
               <th scope="row" className="px-5 py-3 font-semibold text-slate-900">{audit.bankLabel}</th>
               <td className="px-3 py-3 text-right font-semibold text-amber-800">{formatPct(audit.bankApr)}</td>
-              <td className="px-3 py-3 text-right text-slate-700">{formatUSD(audit.bankFee)}</td>
-              <td className="px-3 py-3 text-right text-slate-700">{formatUSDCents(audit.bankMonthly)}</td>
+              <td className="px-3 py-3 text-right text-slate-700">{money(audit.bankFee)}</td>
+              <td className="px-3 py-3 text-right text-slate-700">{cents(audit.bankMonthly)}</td>
               <td className="px-5 py-3 text-right text-slate-400">Baseline</td>
             </tr>
             {audit.tableLenders.map((l, i) => (
@@ -89,15 +92,15 @@ function ComparisonTable({ audit }: { audit: Audit }) {
                 <th scope="row" className="px-5 py-3 font-medium text-slate-900">
                   {l.name}
                   <span className="block text-xs font-normal text-slate-500">
-                    {l.kind === 'credit_union' ? 'Credit union' : 'Online lender'}
+                    {l.kind === 'mutual' ? mutualLabel(market) : 'Online lender'}
                     {i === 0 && ' · Best match'}
                   </span>
                 </th>
                 <td className="px-3 py-3 text-right font-semibold text-slate-900">{formatPct(l.apr)}</td>
-                <td className="px-3 py-3 text-right text-slate-700">{formatUSD(l.originationFee)}</td>
-                <td className="px-3 py-3 text-right text-slate-700">{formatUSDCents(l.monthly)}</td>
+                <td className="px-3 py-3 text-right text-slate-700">{money(l.originationFee)}</td>
+                <td className="px-3 py-3 text-right text-slate-700">{cents(l.monthly)}</td>
                 <td className={cx('px-5 py-3 text-right font-semibold', l.lifetimeSavings > 0 ? 'text-emerald-700' : 'text-slate-400')}>
-                  {formatUSD(l.lifetimeSavings)}
+                  {money(l.lifetimeSavings)}
                 </td>
               </tr>
             ))}
@@ -108,13 +111,14 @@ function ComparisonTable({ audit }: { audit: Audit }) {
   );
 }
 
-function FeeList({ scan, result }: { scan: Scan; result: ScanResult }) {
+function FeeList({ scan, result, market }: { scan: Scan; result: ScanResult; market: Market }) {
+  const money = (n: number) => formatMoney(n, market);
   const flagged = flaggedTotal(result.fees);
   return (
     <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-lg font-bold tracking-tight text-slate-900">
-          <span className="tnum text-amber-700">{formatUSD(flagged)}</span> in fees you can push back on
+          <span className="tnum text-amber-700">{money(flagged)}</span> in fees you can push back on
         </h2>
         <SampleLabel>
           {result.source === 'ai'
@@ -137,7 +141,7 @@ function FeeList({ scan, result }: { scan: Scan; result: ScanResult }) {
               </p>
               <p className="mt-0.5 text-sm text-slate-500">{fee.note}</p>
             </div>
-            <span className="tnum shrink-0 text-sm font-semibold text-slate-900">{formatUSD(fee.amount)}</span>
+            <span className="tnum shrink-0 text-sm font-semibold text-slate-900">{money(fee.amount)}</span>
           </li>
         ))}
       </ul>
@@ -183,7 +187,12 @@ export default function Thread({ input, audit, scans, email, emailOpen, onFile, 
     lastCount.current = count;
   }, [scans, emailOpen]);
 
-  const goal = GOAL_LABELS[input.goal].toLowerCase();
+  const goal = goalNoun(input.goal, input.market);
+  const place = marketName(input.market);
+  const term = rateTerm(input.market);
+  const money = (n: number) => formatMoney(n, input.market);
+  const cents = (n: number) => formatMoneyCents(n, input.market);
+  const docName = documentName(input.goal, input.market);
 
   return (
     <div className="space-y-6">
@@ -191,27 +200,27 @@ export default function Thread({ input, audit, scans, email, emailOpen, onFile, 
         <p className="text-base leading-relaxed text-slate-700">
           {audit.alreadyCompetitive ? (
             <>
-              Your <strong className="tnum font-semibold text-slate-900">{formatPct(audit.bankApr)}</strong> APR on a{' '}
-              <span className="tnum">{formatUSD(input.amount)}</span> {goal} in {STATE_NAMES[input.state]} already beats
+              Your <strong className="tnum font-semibold text-slate-900">{formatPct(audit.bankApr)}</strong> {term} on a{' '}
+              <span className="tnum">{money(input.amount)}</span> {goal} in {placeName(input.market)} already beats
               every matched lender. You already have a competitive rate, so the money left to save is in the fees.
             </>
           ) : (
             <>
-              On a <span className="tnum">{formatUSD(input.amount)}</span> {goal} in {STATE_NAMES[input.state]},{' '}
+              On a <span className="tnum">{money(input.amount)}</span> {goal} in {placeName(input.market)},{' '}
               {audit.best.name} comes in at{' '}
               <strong className="tnum font-semibold text-slate-900">{formatPct(audit.best.apr)}</strong> against{' '}
-              {audit.bankLabel === 'Your Bank' ? 'your bank' : `the ${STATE_NAMES[input.state]} baseline`} at{' '}
+              {audit.bankLabel === 'Your Bank' ? 'your bank' : `the ${place} baseline`} at{' '}
               <strong className="tnum font-semibold text-slate-900">{formatPct(audit.bankApr)}</strong>. That is{' '}
-              <strong className="tnum font-semibold text-emerald-700">{formatUSD(audit.lifetimeSavings)}</strong> over the
-              loan, or <span className="tnum">{formatUSDCents(audit.monthlyDiff)}</span> a month.
+              <strong className="tnum font-semibold text-emerald-700">{money(audit.lifetimeSavings)}</strong> over the
+              loan, or <span className="tnum">{cents(audit.monthlyDiff)}</span> a month.
             </>
           )}
         </p>
-        <ComparisonTable audit={audit} />
+        <ComparisonTable audit={audit} market={input.market} />
         <p className="text-base leading-relaxed text-slate-700">
-          Next, show me the Loan Estimate your bank gave you. I will flag every fee you can remove or negotiate.
+          Next, show me the {docName} your bank gave you. I will flag every fee you can remove or negotiate.
         </p>
-        <PdfDropzone busy={busy} onFile={onFile} onSample={onSample} />
+        <PdfDropzone busy={busy} docName={docName} onFile={onFile} onSample={onSample} />
       </Analyst>
 
       {scans.map((scan) => (
@@ -222,7 +231,7 @@ export default function Thread({ input, audit, scans, email, emailOpen, onFile, 
           </You>
           <Analyst>
             {scan.result ? (
-              <FeeList scan={scan} result={scan.result} />
+              <FeeList scan={scan} result={scan.result} market={input.market} />
             ) : (
               <p role="status" className="flex items-center gap-2.5 text-base text-slate-600">
                 <LoaderCircle className="size-5 animate-spin text-blue-600" aria-hidden="true" />

@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { TrendingDown } from 'lucide-react';
 import { Panel, SampleLabel } from '../ui/primitives';
 import { AMOUNT_RANGE, baselineApr, clampAmount } from '../../lib/finance';
-import { formatPct, formatUSD, formatUSDCents } from '../../lib/format';
+import { currencySymbol, formatMoney, formatMoneyCents, formatPct } from '../../lib/format';
+import { rateTerm } from '../../lib/market';
 import { cx } from '../../lib/cx';
 import type { Audit, QuizInput } from '../../lib/types';
 
@@ -23,7 +24,9 @@ function InputEditor({ input, setInput }: Pick<Props, 'input' | 'setInput'>) {
   const [amount, setAmount] = useState(input.amount.toLocaleString('en-US'));
   const [apr, setApr] = useState(input.bankApr === null ? '' : String(input.bankApr));
   const range = AMOUNT_RANGE[input.goal];
-  const baseline = baselineApr(input.goal, input.state, input.tier);
+  const baseline = baselineApr(input.goal, input.market, input.tier);
+  const money = (n: number) => formatMoney(n, input.market);
+  const term = rateTerm(input.market);
 
   useEffect(() => {
     setAmount(input.amount.toLocaleString('en-US'));
@@ -41,7 +44,7 @@ function InputEditor({ input, setInput }: Pick<Props, 'input' | 'setInput'>) {
             Loan amount
           </label>
           <div className={cx(FIELD, 'mt-1.5')}>
-            <span className="font-semibold text-slate-400">$</span>
+            <span className="font-semibold text-slate-400">{currencySymbol(input.market)}</span>
             <input
               id="rail-amount"
               inputMode="numeric"
@@ -53,12 +56,12 @@ function InputEditor({ input, setInput }: Pick<Props, 'input' | 'setInput'>) {
             />
           </div>
           <p className="tnum mt-1 text-xs text-slate-500">
-            {formatUSD(range.min)} to {formatUSD(range.max)}
+            {money(range.min)} to {money(range.max)}
           </p>
         </div>
         <div>
           <label htmlFor="rail-apr" className="text-sm font-medium text-slate-700">
-            Your bank's APR
+            Your bank's {term}
           </label>
           <div className={cx(FIELD, 'mt-1.5')}>
             <input
@@ -102,6 +105,8 @@ function Delta({ label, before, after, lowerIsBetter }: { label: string; before:
 }
 
 export default function RateRail({ input, setInput, base, audit, rateShift, createdAt, onToggleShift }: Props) {
+  const money = (n: number) => formatMoney(n, input.market);
+  const cents = (n: number) => formatMoneyCents(n, input.market);
   const since = new Date(createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   const shifted = rateShift !== 0;
 
@@ -120,17 +125,17 @@ export default function RateRail({ input, setInput, base, audit, rateShift, crea
             : `No change in matched rates since ${since}.`}
         </p>
         <dl className="mt-3 divide-y divide-slate-100">
-          <Delta label="Best APR" before={formatPct(base.best.apr)} after={formatPct(audit.best.apr)} lowerIsBetter />
+          <Delta label={`Best ${rateTerm(input.market)}`} before={formatPct(base.best.apr)} after={formatPct(audit.best.apr)} lowerIsBetter />
           <Delta
             label="Best monthly"
-            before={formatUSDCents(base.best.monthly)}
-            after={formatUSDCents(audit.best.monthly)}
+            before={cents(base.best.monthly)}
+            after={cents(audit.best.monthly)}
             lowerIsBetter
           />
           <Delta
             label="Lifetime savings"
-            before={formatUSD(base.lifetimeSavings)}
-            after={formatUSD(audit.lifetimeSavings)}
+            before={money(base.lifetimeSavings)}
+            after={money(audit.lifetimeSavings)}
             lowerIsBetter={false}
           />
         </dl>
@@ -160,7 +165,7 @@ export default function RateRail({ input, setInput, base, audit, rateShift, crea
             <li key={l.id} className="flex items-center justify-between gap-3 py-2.5">
               <span className="min-w-0">
                 <span className="block truncate text-sm font-semibold text-slate-900">{l.name}</span>
-                <span className="tnum block text-xs text-slate-500">{formatUSDCents(l.monthly)} a month</span>
+                <span className="tnum block text-xs text-slate-500">{cents(l.monthly)} a month</span>
               </span>
               <span className={cx('tnum shrink-0 text-base font-extrabold tracking-tight', i === 0 ? 'text-emerald-600' : 'text-slate-900')}>
                 {formatPct(l.apr)}
