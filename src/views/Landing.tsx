@@ -7,7 +7,7 @@ import Shell from '../components/layout/Shell';
 import Button from '../components/ui/Button';
 import FinancePattern from '../components/ui/FinancePattern';
 import { formatMoney } from '../lib/format';
-import { documentName, goalNoun } from '../lib/market';
+import { documentName, goalNoun, isUs } from '../lib/market';
 import { loadSaved, planSteps } from '../lib/plan';
 import { useApp } from '../state/AppContext';
 
@@ -112,17 +112,16 @@ export default function Landing() {
       <section className="mx-auto max-w-5xl px-4 pt-14 pb-20 sm:px-6 sm:pt-20 sm:pb-28">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-2xl leading-snug font-bold tracking-tight text-slate-900 sm:text-3xl">
-            Lendro helps you to find the most favorable mortgage terms.
+            Lendro helps you find the most favorable loan terms.
           </p>
           <div className="mt-6 space-y-5 text-left text-lg leading-relaxed text-slate-600">
             <p>
-              A large portion of the American population loses money due to hidden mortgage fees. There are many free
-              consultations available, but as a rule, they are all tied to their own banks, and no one will tell you
-              the most advantageous option.
+              Most borrowers take the first offer from their own bank. Free advice is usually tied to a bank or paid
+              by one, so no one shows you the cheaper option.
             </p>
             <p>
-              Our app helps you find the best terms for you and ensures you don't miss out on financial opportunities
-              from other banks, thereby saving you from 17% to 23% of your savings.
+              Lendro compares your offer with other lenders, flags the fees you can push back on and writes the email
+              that asks your bank to match.
             </p>
           </div>
         </div>
@@ -131,7 +130,7 @@ export default function Landing() {
             <Sparkles className="size-5 sm:size-6" aria-hidden="true" />
             Check my loan offer
           </Button>
-          <p className="mt-4 text-sm text-slate-500">Four questions. No account, no SSN, no credit pull.</p>
+          <p className="mt-4 text-sm text-slate-500">Four questions. No account, {isUs(market) ? 'no SSN' : 'no ID number'}, no credit check.</p>
         </div>
       </section>
 
