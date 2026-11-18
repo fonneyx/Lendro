@@ -45,6 +45,11 @@ Uploaded files are analyzed and not stored. Quiz answers and your plan stay in y
 7. A borrower can save progress on a regional loan plan in the browser and return to it later.
 8. A borrower can use Rate Watch to see how a market rate change affects their saved offer.
 
+## Documentation
+
+- [Activity diagram: scan a loan offer](docs/analysis/activity-scan-offer.png)
+- [Sequence diagram: scan a loan offer](docs/analysis/sequence-scan-offer.png)
+
 ## Built with
 
 React, TypeScript, Vite, Tailwind CSS, Gemini API, Vercel.
