@@ -22,17 +22,6 @@ All rates, payments, fees and savings are calculated in code from your inputs. T
 
 Uploaded files are analyzed and not stored. Quiz answers and your plan stay in your browser. See the [privacy page](https://lendro-app.vercel.app/privacy.html).
 
-## Run locally
-
-```bash
-npm install
-npm run dev
-```
-
-To use the live fee scanner, create a `.env` file with `GEMINI_API_KEY=your-key`. Without a key the scanner shows a sample result.
-
-`npm test` runs the finance tests.
-
 ## Built with
 
 React, TypeScript, Vite, Tailwind CSS, Gemini API, Vercel.
